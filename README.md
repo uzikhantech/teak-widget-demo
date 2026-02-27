@@ -1,6 +1,10 @@
-# RefundTix
+# Teak Widget Integration Demo
 
-Event ticketing demo site.
+## Overview
+
+This project demonstrates integration of the Teak Refund Protection widget into a React application.
+
+The project originally began from the official RefundTix demo repository and was refactored to:
 
 ## Features
 
