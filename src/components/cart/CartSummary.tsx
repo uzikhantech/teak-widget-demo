@@ -68,22 +68,20 @@ export function CartSummary({ showCheckoutButton = true, showCouponInput = true 
                 </div>
             </div>
 
+
+            {/* Teak Refund Protection */}
+            <Separator className="my-4" />
+            <div className="space-y-2">
+                <TeakWidget totalAmount={total} />
+            </div>
             <Separator className="my-4" />
 
-            <Separator className="my-4" />
-
-{/* Teak Protection Widget */}
-      
-            <TeakWidget/>
-
-<Separator className="my-4" />
-
-<div className="flex items-center justify-between">
-    <span className="text-base font-semibold text-neutral-900">Total</span>
-    <span className="text-xl font-bold text-neutral-900">
-        ${total.toFixed(2)}
-    </span>
-</div>
+            <div className="flex items-center justify-between">
+                <span className="text-base font-semibold text-neutral-900">Total</span>
+                <span className="text-xl font-bold text-neutral-900">
+                    ${total.toFixed(2)}
+                </span>
+            </div>
 
             {showCouponInput && (
                 <>
