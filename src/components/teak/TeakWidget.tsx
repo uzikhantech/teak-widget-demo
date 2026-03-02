@@ -46,7 +46,7 @@ export default function TeakWidget({ totalAmount }: TeakWidgetProps) {
       configuredRef.current = true;
 
       window.tg?.("configure", {
-        apiKey: "pk_sandbox_171d94514de020b84871ddd965ab3059910cfaf8",
+        apiKey: "test",
         items: [{ cost: totalAmount }],
         sandbox: true,
       });
