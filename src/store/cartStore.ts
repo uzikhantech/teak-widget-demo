@@ -7,6 +7,10 @@ import { findCoupon, calculateDiscount } from "@/data/coupons";
 interface CartState {
     items: CartItem[];
     appliedCoupon: Coupon | null;
+    //refund price protection states
+    refundProtectionPrice: number;
+    isProtectionSelected: boolean;
+    setRefundProtection: (price: number, selected: boolean) => void;
     addItem: (event: Event, ticketType: TicketType, quantity?: number) => void;
     removeItem: (eventId: string, ticketTypeId: string) => void;
     updateQuantity: (eventId: string, ticketTypeId: string, quantity: number) => void;
@@ -24,6 +28,17 @@ export const useCartStore = create<CartState>()(
         (set, get) => ({
             items: [],
             appliedCoupon: null,
+
+            //initialize the refund protection
+            refundProtectionPrice: 0,
+            isProtectionSelected: false,
+
+            setRefundProtection: (price: number, selected: boolean) => {
+                set({
+                    refundProtectionPrice: selected ? price : 0,
+                    isProtectionSelected: selected,
+                 });
+            },
 
             addItem: (event, ticketType, quantity = 1) => {
                 set((state) => {

@@ -48,6 +48,7 @@ export interface Order {
     discount?: number;
     serviceFee: number;
     tax: number;
+    refundProtection?: number; //added refund protection so the back end stores it in "totals"
     total: number;
   };
   coupon?: {

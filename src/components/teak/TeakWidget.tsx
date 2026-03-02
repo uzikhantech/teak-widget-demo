@@ -1,4 +1,6 @@
 import { useEffect, useRef } from "react";
+import { useCartStore } from "@/store/cartStore";
+
 
 interface TeakWidgetProps {
   totalAmount: number;
@@ -46,12 +48,77 @@ export default function TeakWidget({ totalAmount }: TeakWidgetProps) {
       configuredRef.current = true;
 
       window.tg?.("configure", {
-        apiKey: "test",
+        apiKey: import.meta.env.VITE_TEAK_API_KEY,
         items: [{ cost: totalAmount }],
         sandbox: true,
+
+         loadedCb: function () {
+          console.log("Teak loaded");
+
+          const quote = window.tg?.get("quote");
+          const isProtected = window.tg?.isProtected();
+          
+            // consumer opts in update the refund protection price
+          if (isProtected && quote) {
+            useCartStore.getState().setRefundProtection(Number(quote), true);
+          }
+        },
+
+        optInCb: function () {
+           console.log("Opt in for protection");
+
+          const quote = window.tg?.get("quote");
+          const isProtected = window.tg?.isProtected();
+          const quoteToken = window.tg.get("token"); 
+
+          // consumer opts in update the refud protection price
+          if (isProtected && quote) {
+            useCartStore
+              .getState()
+              .setRefundProtection(Number(quote), isProtected);
+          }
+        },
+
+        optOutCb: function () {
+          console.log("Opt out for protection");
+
+          const isProtected = window.tg?.isProtected();
+          const quoteToken = window.tg.get("token"); 
+
+          useCartStore.getState().setRefundProtection(0, isProtected);
+        },
+
+        updatedCb: function () {
+          console.log("Quote updated");
+
+          const quote = window.tg?.get("quote");
+          const isProtected = window.tg?.isProtected();
+
+          //if consumer adjusts cart products make sure update the protection price
+          if (isProtected && quote) {
+            useCartStore
+              .getState()
+              .setRefundProtection(Number(quote), true);
+          } else {
+            useCartStore
+              .getState()
+              .setRefundProtection(0, false);
+          }
+        },
+
+        onErrorCb: function (message: string) {
+          console.error("Teak error:", message);
+          useCartStore
+            .getState()
+            .setRefundProtection(0, false); 
+        },
+
       });
     } else {
-      // If total changes AFTER init, update items
+      // If price changes AFTER init, update items
+      // If subtotal changes after initial load
+      console.log("Calling tg update with:", totalAmount)
+
       window.tg?.("update", {
         items: [{ cost: totalAmount }],
       });

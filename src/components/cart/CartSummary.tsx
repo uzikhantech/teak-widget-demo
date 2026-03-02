@@ -12,7 +12,7 @@ interface CartSummaryProps {
 }
 
 export function CartSummary({ showCheckoutButton = true, showCouponInput = true }: CartSummaryProps) {
-    const { items, getTotal, appliedCoupon, getDiscount } = useCartStore();
+    const { items, getTotal, appliedCoupon, getDiscount, refundProtectionPrice, isProtectionSelected } = useCartStore();
     const subtotal = getTotal();
     const discount = getDiscount();
     const discountedSubtotal = subtotal - discount;
@@ -20,7 +20,8 @@ export function CartSummary({ showCheckoutButton = true, showCouponInput = true 
     // Fees and tax calculated on discounted subtotal
     const serviceFee = discountedSubtotal * 0.1; // 10% service fee
     const tax = discountedSubtotal * 0.08; // 8% tax
-    const total = discountedSubtotal + serviceFee + tax;
+    const protectionPrice =  isProtectionSelected ? refundProtectionPrice : 0; //TEAK Protection price when OPT IN
+    const total = discountedSubtotal + serviceFee + tax + protectionPrice;
 
     if (items.length === 0) {
         return null;
@@ -72,8 +73,29 @@ export function CartSummary({ showCheckoutButton = true, showCouponInput = true 
             {/* Teak Refund Protection */}
             <Separator className="my-4" />
             <div className="space-y-2">
-                <TeakWidget totalAmount={total} />
+                <TeakWidget totalAmount={Number(discountedSubtotal.toFixed(2))} />
             </div>
+            <Separator className="my-4" />
+
+            {/*Add in line protection price to cart summary component*/}
+            {isProtectionSelected && refundProtectionPrice > 0 && (
+            <div className="mt-3 rounded-md bg-emerald-50 px-3 py-2">
+                <div className="flex items-center justify-between text-sm">
+                <div>
+                    <p className="font-medium text-emerald-800">
+                    Refund Protection
+                    </p>
+                    <p className="text-xs text-emerald-700">
+                    Added coverage for your tickets
+                    </p>
+                </div>
+                <span className="font-semibold text-emerald-900">
+                    ${refundProtectionPrice.toFixed(2)}
+                </span>
+                </div>
+            </div>
+            )}
+
             <Separator className="my-4" />
 
             <div className="flex items-center justify-between">

@@ -32,6 +32,7 @@ interface Order {
         discount?: number;
         serviceFee: number;
         tax: number;
+        refundProtection?: number; //make sure orders knows about the protection coverage
         total: number;
     };
     coupon?: {
@@ -57,6 +58,7 @@ interface OrderRequest {
         discount?: number;
         serviceFee: number;
         tax: number;
+        refundProtection?: number; //make sure order request knows about protection coverage, if any
         total: number;
     };
     coupon?: {
