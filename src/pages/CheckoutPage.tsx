@@ -8,11 +8,14 @@ import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CartSummary } from "@/components/cart/CartSummary";
 import { useCartStore } from "@/store/cartStore";
+import { buildTeakPayload } from "@/lib/buildTeakPayload";
 
 export function CheckoutPage() {
     const navigate = useNavigate();
     const { items, clearCart, appliedCoupon, getTotal, getDiscount, refundProtectionPrice, isProtectionSelected } = useCartStore();
     const [isProcessing, setIsProcessing] = useState(false);
+
+    console.log("Cart Items:", JSON.stringify(items, null, 2));
 
     // Form state
     const [formData, setFormData] = useState({
@@ -42,6 +45,82 @@ export function CheckoutPage() {
         );
     }
 
+    //Fucntion to return fomratted payload
+    const buildTeakPayload = (orderId: string, token: string) => {
+        console.log("invoked")
+        if (!items.length) return null;
+
+        const formatDate = (date: string) =>
+            new Date(date).toISOString().split("T")[0];
+
+        const formatTimeTo24Hour = (time12h: string) => {
+            const [time, modifier] = time12h.split(" ");
+            let [hours, minutes] = time.split(":");
+
+            if (hours === "12") hours = "00";
+            if (modifier === "PM") {
+                hours = (parseInt(hours, 10) + 12).toString();
+            }
+
+            return `${hours.padStart(2, "0")}:${minutes}`;
+        };
+
+        const firstItem = items[0];
+
+        const payload = {
+            token,
+            order_number: orderId,
+            currency: "USD",
+
+            event: {
+                name: firstItem.event.name,
+                start_date: formatDate(firstItem.event.date),
+                start_time: formatTimeTo24Hour(firstItem.event.time),
+                end_date: formatDate(firstItem.event.date),
+                end_time: formatTimeTo24Hour(firstItem.event.time),
+                location: firstItem.event.venue, // better than location
+            },
+
+            customer: {
+                first_name: formData.firstName,
+                last_name: formData.lastName,
+                email: formData.email,
+                phone: formData.phone || "5555555555",
+            },
+
+            billing_address: {
+                address1: "123 Main St",
+                address2: "Ste 1",
+                city: "Phoenix",
+                zip_code: "85020",
+                state: "AZ",
+                country: "US",
+            },
+
+            items: items.flatMap((item, index) =>
+                Array.from({ length: item.quantity }).map((_, qtyIndex) => ({
+                    name: `${item.event.name} - ${item.ticketType.name}`,
+                    reference_number: `${orderId}-item-${index + 1}-${qtyIndex + 1}`,
+                    cost: item.ticketType.price.toString(),
+                    event: {
+                        name: item.event.name,
+                        start_date: formatDate(item.event.date),
+                        start_time: formatTimeTo24Hour(item.event.time),
+                        end_date: formatDate(item.event.date),
+                        end_time: formatTimeTo24Hour(item.event.time),
+                        location: item.event.venue,
+                    },
+                }))
+            ),
+
+            payment: {
+                type: "invoice",
+            },
+        };
+        console.log(JSON.stringify(payload, null, 2))
+        return payload;
+    };
+
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
@@ -67,7 +146,7 @@ export function CheckoutPage() {
             const total =  discountedSubtotal + serviceFee + tax + refundProtectionFee;
             //const total = discountedSubtotal + serviceFee + tax;
 
-            // Step 1: Process payment first
+            // ============Step 1: Process payment first======================//
             const paymentResponse = await fetch("http://localhost:3001/api/payments", {
                 method: "POST",
                 headers: {
@@ -89,7 +168,7 @@ export function CheckoutPage() {
                 throw new Error("Payment was declined");
             }
 
-            // Step 2: Create order with payment reference
+            // =========Step 2: Create order with payment reference==========//
             const orderData = {
                 customer: {
                     email: formData.email,
@@ -140,12 +219,28 @@ export function CheckoutPage() {
 
             const orderResult = await orderResponse.json();
 
+            //check we definetly have an order created before ordering refund protection
+            if (!orderResult.orderId) {
+                throw new Error("Order creation failed");
+            }
 
-            //=========Create TEAK protection order========//
+
+            //=========STEP 3 - Create TEAK protection order========//
+            if(isProtectionSelected){
+                try{
+
+
+                
+                } catch (teakError) {
+                    console.error("Teak Protection Error:" + teakError)
+                }
+
+            }
             
 
-            // Clear cart and navigate to confirmation
+            //=========STEP 4 - Success: Clear cart and navigate to confirmation=========//
             clearCart();
+
             navigate("/order-confirmation", {
                 state: {
                     orderNumber: orderResult.orderId,
@@ -171,6 +266,7 @@ export function CheckoutPage() {
                             <ArrowLeft className="mr-2 h-4 w-4" />
                             Back to Cart
                         </Link>
+                        
                     </Button>
                 </div>
             </div>
@@ -179,6 +275,11 @@ export function CheckoutPage() {
                 <h1 className="text-2xl font-bold text-neutral-900 sm:text-3xl">
                     Checkout
                 </h1>
+                <button
+                                    onClick={() => buildTeakPayload("123", "abc")}
+                                    >
+                                    Invoke
+                                </button>
 
                 <form onSubmit={handleSubmit}>
                     <div className="mt-8 grid gap-8 lg:grid-cols-3">

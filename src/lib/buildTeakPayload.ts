@@ -1,0 +1,122 @@
+export interface TeakEvent {
+    name: string;
+    start_date: string;
+    start_time: string;
+    end_date: string;
+    end_time: string;
+    location: string;
+}
+
+export interface TeakItem {
+    name: string;
+    reference_number: string;
+    cost: string;
+    event: TeakEvent;
+}
+
+export interface TeakPayload {
+    token: string;
+    order_number: string;
+    currency: string;
+    event?: TeakEvent;
+    customer: {
+        first_name: string;
+        last_name: string;
+        email: string;
+        phone: string;
+    };
+    billing_address: {
+        address1: string;
+        address2: string;
+        city: string;
+        zip_code: string;
+        state: string;
+        country: string;
+    };
+    items: TeakItem[];
+    payment: {
+        type: string;
+    };
+}
+
+export const buildTeakPayload = (
+    orderId: string,
+    token: string,
+    items: any[],
+    formData: any
+): TeakPayload => {
+
+    const formatDate = (date: string) =>
+        new Date(date).toISOString().split("T")[0];
+
+    const formatTimeTo24Hour = (time12h: string) => {
+        const [time, modifier] = time12h.split(" ");
+        let [hours, minutes] = time.split(":");
+
+        if (hours === "12") hours = "00";
+        if (modifier === "PM") {
+            hours = (parseInt(hours, 10) + 12).toString();
+        }
+
+        return `${hours.padStart(2, "0")}:${minutes}`;
+    };
+
+    const firstItem = items[0];
+
+    return {
+        token,
+        order_number: orderId,
+        currency: "USD",
+
+        event: {
+            name: firstItem.event.name,
+            start_date: formatDate(firstItem.event.date),
+            start_time: formatTimeTo24Hour(firstItem.event.time),
+            end_date: formatDate(firstItem.event.date),
+            end_time: formatTimeTo24Hour(firstItem.event.time),
+            location: firstItem.event.venue,
+        },
+
+        customer: {
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            email: formData.email,
+            phone: formData.phone || "5555555555",
+        },
+
+        billing_address: {
+            address1: "123 Main St",
+            address2: "Ste 1",
+            city: "Phoenix",
+            zip_code: "85020",
+            state: "AZ",
+            country: "US",
+        },
+
+        items: items.flatMap((item, index) => {
+            const expandedItems = [];
+
+            for (let i = 0; i < item.quantity; i++) {
+                expandedItems.push({
+                    name: `${item.event.name} - ${item.ticketType.name}`,
+                    reference_number: `${orderId}-item-${index + 1}-${i + 1}`,
+                    cost: item.ticketType.price.toString(),
+                    event: {
+                        name: item.event.name,
+                        start_date: formatDate(item.event.date),
+                        start_time: formatTimeTo24Hour(item.event.time),
+                        end_date: formatDate(item.event.date),
+                        end_time: formatTimeTo24Hour(item.event.time),
+                        location: item.event.venue,
+                    },
+                });
+            }
+
+            return expandedItems;
+        }),
+
+        payment: {
+            type: "invoice",
+        },
+    };
+};
