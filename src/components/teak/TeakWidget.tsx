@@ -57,10 +57,13 @@ export default function TeakWidget({ totalAmount }: TeakWidgetProps) {
 
           const quote = window.tg?.get("quote");
           const isProtected = window.tg?.isProtected();
+          console.log("Teak protection:" + isProtected);
           
             // consumer opts in update the refund protection price
           if (isProtected && quote) {
             useCartStore.getState().setRefundProtection(Number(quote), true);
+          } else {
+            useCartStore.getState().setRefundProtection(0, false);
           }
         },
 

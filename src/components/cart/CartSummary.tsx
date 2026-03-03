@@ -77,8 +77,8 @@ export function CartSummary({ showCheckoutButton = true, showCouponInput = true 
             </div>
             <Separator className="my-4" />
 
-            {/*Add in line protection price to cart summary component*/}
-            {isProtectionSelected && refundProtectionPrice > 0 && (
+            {/*Add in line protection price to cart summary component or show a warning*/}
+            {isProtectionSelected && refundProtectionPrice > 0 ? (
             <div className="mt-3 rounded-md bg-emerald-50 px-3 py-2">
                 <div className="flex items-center justify-between text-sm">
                 <div>
@@ -86,12 +86,26 @@ export function CartSummary({ showCheckoutButton = true, showCouponInput = true 
                     Refund Protection
                     </p>
                     <p className="text-xs text-emerald-700">
-                    Added coverage for your tickets
+                    Your tickets are covered if you can’t attend.
                     </p>
                 </div>
                 <span className="font-semibold text-emerald-900">
                     ${refundProtectionPrice.toFixed(2)}
                 </span>
+                </div>
+            </div>
+            ) : (
+            <div className="mt-3 rounded-md bg-amber-50 px-3 py-2">
+                <div className="flex items-start gap-2 text-sm">
+                <span className="text-amber-600">⚠️</span>
+                <div>
+                    <p className="font-medium text-amber-800">
+                    Tickets are not protected
+                    </p>
+                    <p className="text-xs text-amber-700">
+                    You will not be eligible for a refund if you cannot attend.
+                    </p>
+                </div>
                 </div>
             </div>
             )}

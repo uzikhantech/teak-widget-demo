@@ -11,7 +11,7 @@ import { useCartStore } from "@/store/cartStore";
 
 export function CheckoutPage() {
     const navigate = useNavigate();
-    const { items, clearCart, appliedCoupon, getTotal, getDiscount } = useCartStore();
+    const { items, clearCart, appliedCoupon, getTotal, getDiscount, refundProtectionPrice } = useCartStore();
     const [isProcessing, setIsProcessing] = useState(false);
 
     // Form state
@@ -59,7 +59,13 @@ export function CheckoutPage() {
             // Fees and tax calculated on discounted subtotal
             const serviceFee = discountedSubtotal * 0.1;
             const tax = discountedSubtotal * 0.08;
-            const total = discountedSubtotal + serviceFee + tax;
+
+            // Use protection price from cart store
+            const refundProtectionFee = refundProtectionPrice || 0;
+
+            // 🔥 Include protection in total
+            const total =  discountedSubtotal + serviceFee + tax + refundProtectionFee;
+            //const total = discountedSubtotal + serviceFee + tax;
 
             // Step 1: Process payment first
             const paymentResponse = await fetch("http://localhost:3001/api/payments", {
@@ -104,6 +110,7 @@ export function CheckoutPage() {
                     discount,
                     serviceFee,
                     tax,
+                    refundProtectionFee, //adding ticket refund protection to backend order
                     total,
                 },
                 coupon: appliedCoupon ? {
@@ -113,6 +120,10 @@ export function CheckoutPage() {
                 } : undefined,
                 paymentTransactionId: paymentResult.transactionId,
             };
+
+            console.log("orderData:", JSON.stringify(orderData, null, 2));
+
+            console.table(orderData.items);
 
             // Submit order to API
             const orderResponse = await fetch("http://localhost:3001/api/orders", {

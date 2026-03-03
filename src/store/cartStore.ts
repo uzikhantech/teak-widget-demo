@@ -87,7 +87,8 @@ export const useCartStore = create<CartState>()(
             },
 
             clearCart: () => {
-                set({ items: [], appliedCoupon: null });
+                set({ items: [], appliedCoupon: null,   isProtectionSelected: false,
+    refundProtectionPrice: 0, });
             },
 
             getTotal: () => {
