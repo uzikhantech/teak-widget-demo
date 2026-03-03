@@ -8,6 +8,7 @@
         "start": "tsx index.ts"
     },
     "dependencies": {
+        "@api/helloteak": "file:teak/.api/apis/helloteak",
         "cors": "^2.8.5",
         "express": "^4.21.0"
     },

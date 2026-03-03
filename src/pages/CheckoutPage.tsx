@@ -11,7 +11,7 @@ import { useCartStore } from "@/store/cartStore";
 
 export function CheckoutPage() {
     const navigate = useNavigate();
-    const { items, clearCart, appliedCoupon, getTotal, getDiscount, refundProtectionPrice } = useCartStore();
+    const { items, clearCart, appliedCoupon, getTotal, getDiscount, refundProtectionPrice, isProtectionSelected } = useCartStore();
     const [isProcessing, setIsProcessing] = useState(false);
 
     // Form state
@@ -139,6 +139,10 @@ export function CheckoutPage() {
             }
 
             const orderResult = await orderResponse.json();
+
+
+            //=========Create TEAK protection order========//
+            
 
             // Clear cart and navigate to confirmation
             clearCart();

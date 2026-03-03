@@ -61,3 +61,11 @@ npm run dev
 
 - Frontend: http://localhost:5173
 - Backend: http://localhost:3001
+
+### 5. DEV NOTES
+
+- The Teak order should ONLY be submitted after your primary transaction (on the ticketing platform) is successfully completed.
+- Each line item in the cart needs to be submitted as an item in order API call.
+- Submit an Order for a single line item.
+- Submit an Order for multiple line items.
+- Each line item in the cart receives its own policy.

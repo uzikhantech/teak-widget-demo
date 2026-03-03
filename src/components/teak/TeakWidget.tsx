@@ -48,7 +48,7 @@ export default function TeakWidget({ totalAmount }: TeakWidgetProps) {
       configuredRef.current = true;
 
       window.tg?.("configure", {
-        apiKey: import.meta.env.VITE_TEAK_API_KEY,
+        apiKey: import.meta.env.VITE_TEAK_API_PUB_KEY,
         items: [{ cost: totalAmount }],
         sandbox: true,
 
@@ -72,13 +72,12 @@ export default function TeakWidget({ totalAmount }: TeakWidgetProps) {
 
           const quote = window.tg?.get("quote");
           const isProtected = window.tg?.isProtected();
-          const quoteToken = window.tg.get("token"); 
+          const quoteToken = window.tg?.get("token"); 
 
           // consumer opts in update the refud protection price
-          if (isProtected && quote) {
-            useCartStore
-              .getState()
-              .setRefundProtection(Number(quote), isProtected);
+          if (quote && quoteToken) {
+            useCartStore.getState().setRefundProtection(Number(quote), isProtected);
+            useCartStore.getState().setRefundProtectionToken(quoteToken);
           }
         },
 
@@ -86,9 +85,14 @@ export default function TeakWidget({ totalAmount }: TeakWidgetProps) {
           console.log("Opt out for protection");
 
           const isProtected = window.tg?.isProtected();
-          const quoteToken = window.tg.get("token"); 
+          const quoteToken = window.tg?.get("token"); 
+
+          if (quoteToken) {
+              useCartStore.getState().setRefundProtectionToken(quoteToken);
+          }
 
           useCartStore.getState().setRefundProtection(0, isProtected);
+      
         },
 
         updatedCb: function () {
@@ -96,6 +100,11 @@ export default function TeakWidget({ totalAmount }: TeakWidgetProps) {
 
           const quote = window.tg?.get("quote");
           const isProtected = window.tg?.isProtected();
+          const quoteToken = window.tg?.get("token"); 
+
+          if(quoteToken) {
+            useCartStore.getState().setRefundProtectionToken(quoteToken);
+          }
 
           //if consumer adjusts cart products make sure update the protection price
           if (isProtected && quote) {
@@ -114,6 +123,7 @@ export default function TeakWidget({ totalAmount }: TeakWidgetProps) {
           useCartStore
             .getState()
             .setRefundProtection(0, false); 
+            useCartStore.getState().setRefundProtectionToken(null);
         },
 
       });

@@ -257,6 +257,74 @@ app.post("/api/orders/:orderId/cancel", (req, res) => {
     }, 500);
 });
 
+
+
+// ============================================
+// CREATE TEAK PROTECTION ORDER
+// ============================================
+// Per documentation - The Teak order should ONLY be submitted after your 
+// primary transaction (on the ticketing platform) is successfully completed.
+// ============================================
+
+app.post("/api/teak/order", async (req, res) => {
+
+    const TEAK_API_BASE = process.env.TEAK_API_BASE;
+    const TEAK_API_VERSION = process.env.TEAK_API_VERSION;
+
+    if (!TEAK_API_BASE || !TEAK_API_VERSION) {
+        throw new Error("Missing TEAK API environment variables");
+    }
+
+    const API_URL = `${TEAK_API_BASE}${TEAK_API_VERSION}`;
+
+    try {
+        const teakOrderPayload = req.body;
+
+    // STEP 1 — Obtain the JWT token
+    const authResponse = await fetch(API_URL,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          accept: "application/json",
+        },
+        body: JSON.stringify({
+          public_key: process.env.TEAK_PUBLIC_KEY,
+          secret_key: process.env.TEAK_SECRET_KEY,
+        }),
+      }
+    );
+
+    //get the token
+    const authData = await authResponse.json();
+
+    if (!authData.access_token) {
+      throw new Error("JWT generation failed");
+    }
+
+     // STEP 2 — Create Order
+    const orderResponse = await fetch(API_URL,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `JWT ${authData.access_token}`,
+        },
+        body: JSON.stringify(teakOrderPayload),
+      }
+    );
+
+    const orderData = await orderResponse.json();
+
+    res.json({ success: true, teakOrder: orderData });
+
+
+    } catch (err: any) {
+        console.log("Teak Refund Protection Order Error");
+        res.status(500).json({ success: false });
+    }
+});
+
 // Health check endpoint
 app.get("/api/health", (_req, res) => {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
@@ -269,5 +337,6 @@ app.listen(PORT, () => {
     console.log(`   Payments API: POST http://localhost:${PORT}/api/payments`);
     console.log(`   Orders API: POST http://localhost:${PORT}/api/orders`);
     console.log(`   Orders API: GET http://localhost:${PORT}/api/orders?email=...`);
-    console.log(`   Cancel Order: POST http://localhost:${PORT}/api/orders/:orderId/cancel\n`);
+    console.log(`   Cancel Order: POST http://localhost:${PORT}/api/orders/:orderId/cancel`);
+    console.log(`   Refund Protection Order: POST http://localhost:${PORT}/api/teak/order\n`);
 });

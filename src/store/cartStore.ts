@@ -10,6 +10,8 @@ interface CartState {
     //refund price protection states
     refundProtectionPrice: number;
     isProtectionSelected: boolean;
+    refundProtectionToken: string | null
+    setRefundProtectionToken: (token: string | null) => void;
     setRefundProtection: (price: number, selected: boolean) => void;
     addItem: (event: Event, ticketType: TicketType, quantity?: number) => void;
     removeItem: (eventId: string, ticketTypeId: string) => void;
@@ -38,6 +40,14 @@ export const useCartStore = create<CartState>()(
                     refundProtectionPrice: selected ? price : 0,
                     isProtectionSelected: selected,
                  });
+            },
+
+            //initial the refund protection token
+            refundProtectionToken: null,
+            setRefundProtectionToken: (token: string | null) => {
+                set({
+                    refundProtectionToken: token
+                });
             },
 
             addItem: (event, ticketType, quantity = 1) => {
