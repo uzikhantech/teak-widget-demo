@@ -164,7 +164,7 @@ export const buildTeakPayload = (
             type: "invoice",
         },
     };
-    console.log(JSON.stringify(payload, null, 2))
+
     return payload;
 };
 

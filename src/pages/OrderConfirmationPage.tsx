@@ -7,6 +7,7 @@ import { Separator } from "@/components/ui/separator";
 interface LocationState {
     orderNumber?: string;
     email?: string;
+    protectionWarning?: string;
 }
 
 export function OrderConfirmationPage() {
@@ -15,6 +16,7 @@ export function OrderConfirmationPage() {
 
     const orderNumber = state?.orderNumber || "EVT-DEMO12345";
     const email = state?.email || "your email";
+    const protectionWarning = state?.protectionWarning;
 
     return (
         <div className="bg-neutral-50 min-h-screen">
@@ -43,6 +45,13 @@ export function OrderConfirmationPage() {
                         </div>
 
                         <Separator className="my-6" />
+
+                        {/* Graceful Protection Warning if order protection fails */}
+                        {protectionWarning && (
+                            <div className="mb-6 rounded-md border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800">
+                                {protectionWarning}
+                            </div>
+                        )}
 
                         <div className="space-y-4">
                             <div className="flex items-start gap-4">

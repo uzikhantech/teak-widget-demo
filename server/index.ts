@@ -275,71 +275,112 @@ app.post("/api/teak/order", async (req, res) => {
     const TEAK_API_BASE = process.env.TEAK_API_BASE;
     const TEAK_API_VERSION = process.env.TEAK_API_VERSION;
 
-    console.log("TEAK BASE URL" +TEAK_API_BASE + TEAK_API_VERSION)
-
+    //Handle failure - Missing Teak API ENV Variables
     if (!TEAK_API_BASE || !TEAK_API_VERSION) {
-        throw new Error("Missing TEAK API environment variables");
+        console.error("Missing TEAK API environment variables");
+
+        return res.status(200).json({
+            success: false,
+            protectionCreated: false,
+            message: "Refund protection service unavailable: TEAK API Url malformed"
+        });
     }
 
     const API_URL = `${TEAK_API_BASE}${TEAK_API_VERSION}`;
-    console.log("API_URL: " + API_URL);
 
     try {
         const teakOrderPayload = req.body;
-        console.log("requ body: " + JSON.stringify(teakOrderPayload, null, 2));
+        console.log("request body: " + JSON.stringify(teakOrderPayload, null, 2));
 
 
+        // STEP 1 — Obtain the JWT token
+        const authResponse = await fetch(API_URL+'/auth/token',
+        {
+            method: "POST",
+            headers: {
+            "Content-Type": "application/json",
+            accept: "application/json",
+            },
+            body: JSON.stringify({
+            public_key: process.env.TEAK_PUBLIC_KEY,
+            secret_key: process.env.TEAK_SECRET_KEY,
+            }),
+        });
 
-    // STEP 1 — Obtain the JWT token
-    const authResponse = await fetch(API_URL+'/auth/token',
-      {
-        method: "POST",
-        headers: {
-        "Content-Type": "application/json",
-          accept: "application/json",
-        },
-        body: JSON.stringify({
-          public_key: process.env.TEAK_PUBLIC_KEY,
-          secret_key: process.env.TEAK_SECRET_KEY,
-        }),
-      }
-    );
+        //Handle Failure - Auth API fetch failure
+        if (!authResponse.ok) {
+            const errorText = await authResponse.text();
+            console.error("Teak JWT Error:", errorText);
 
-    console.log("JWT Tokem: "+ authResponse.status)
+            return res.status(200).json({
+                success: false,
+                protectionCreated: false,
+                message: "Refund protection service unavailable: Unable to communicate with auth token endpoint"
+            });
+        }
 
-    //get the token
-    const authData = await authResponse.json();
-    console.log("Auth Data: "+ JSON.stringify(authData.token))
-    console.log("JWT Tokem: "+ authData.token)
+        //get the token
+        const authData = await authResponse.json();
 
-    if (!authData.token) {
-      throw new Error("JWT generation failed");
-    }
+        // Handle Failure - missing token from /auth/token auth response
+        if (!authData.token) {
+            console.error("JWT token missing in response");
 
-     // STEP 2 — Create Order
-    const orderResponse = await fetch(API_URL+'/orders',
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `JWT ${authData.token}`,
-        },
-        body: JSON.stringify(teakOrderPayload),
-      }
-    );
+            return res.status(200).json({
+                success: false,
+                protectionCreated: false,
+                message: "Refund protection service unavailable: JWT token missing from auth response"
+            });
+        }
 
-    const orderData = await orderResponse.json();
 
-    res.json({ success: true, teakOrder: orderData });
+        // STEP 2 — Create Order
+        const orderResponse = await fetch(API_URL+'/orders',
+        {
+            method: "POST",
+            headers: {
+            "Content-Type": "application/json",
+            Authorization: `JWT ${authData.token}`,
+            },
+            body: JSON.stringify(teakOrderPayload),
+        });
+        
+        //Handle Failure - miss protection order from /orders
+        if (!orderResponse.ok) {
+            const errorBody = await orderResponse.text();
+            console.error("Teak Order Creation Failed:", errorBody);
+
+            return res.status(200).json({
+                success: false,
+                protectionCreated: false,
+                message: "Refund protection service unavailable: Unable to communicate with order endpoint"
+            });
+        }
+
+        const orderData = await orderResponse.json();
+
+        //Handle Success
+         return res.status(200).json({
+            success: true,
+            protectionCreated: true,
+            teakOrder: orderData,
+            message:"Refund Protection Success"
+        });
 
 
     } catch (err: any) {
         console.log("Teak Refund Protection Order Error");
-        res.status(500).json({ success: false });
+         return res.status(200).json({
+            success: false,
+            protectionCreated: false,
+            message: "Refund protection service temporarily unavailable"
+        });
     }
 });
 
-// Health check endpoint
+// ============================================
+// Health Check endpoint
+// ============================================
 app.get("/api/health", (_req, res) => {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
 });

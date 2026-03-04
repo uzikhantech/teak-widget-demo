@@ -14,6 +14,8 @@ export function CheckoutPage() {
     const navigate = useNavigate();
     const { items, clearCart, appliedCoupon, getTotal, getDiscount, refundProtectionPrice, refundProtectionToken, isProtectionSelected } = useCartStore();
     const [isProcessing, setIsProcessing] = useState(false);
+    //for storing teak order failure:
+    let protectionWarning: string | null = null;
 
     // Form state
     const [formData, setFormData] = useState({
@@ -123,10 +125,6 @@ export function CheckoutPage() {
                 paymentTransactionId: paymentResult.transactionId,
             };
 
-            console.log("orderData:", JSON.stringify(orderData, null, 2));
-
-            console.table(orderData.items);
-
             // Submit order to API
             const orderResponse = await fetch("http://localhost:3001/api/orders", {
                 method: "POST",
@@ -158,30 +156,34 @@ export function CheckoutPage() {
                         formData
                     );
 
-                console.log("===== SENDING TO TEAK =====");
-                console.log(JSON.stringify(teakPayload, null, 2));
+                    console.log("===== SENDING TO TEAK =====");
+                    console.log(JSON.stringify(teakPayload, null, 2));
 
-                const teakResponse = await fetch(
-                    "http://localhost:3001/api/teak/order",
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify(teakPayload),
-                    }
-                );
+                    const teakResponse = await fetch(
+                        "http://localhost:3001/api/teak/order",
+                        {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify(teakPayload),
+                        }
+                    );
 
-                if (!teakResponse.ok) {
-                    console.error("Teak API returned non-200 response");
-                } else {
                     const teakResult = await teakResponse.json();
-                    console.log("Teak order success:", teakResult);
-                }
 
+                    //check refund protection results - do not block ticket transaction
+                    if (!teakResult.success || !teakResult.protectionCreated) {
+                        console.error("Teak Protection Error");
+                        protectionWarning =
+                            "Your tickets were successfully purchased, but refund protection could not be added. You will not be charged for protection.";
+                    }
+                  
                 
                 } catch (teakError) {
                     console.error("Teak Protection Error:" + teakError)
+                    protectionWarning =
+                            "Your tickets were successfully purchased, but refund protection could not be added. You will not be charged for protection.";
                 }
 
             }
@@ -195,6 +197,8 @@ export function CheckoutPage() {
                     orderNumber: orderResult.orderId,
                     email: formData.email,
                     paymentTransactionId: paymentResult.transactionId,
+                    //pass protection warning to confirmation order page
+                    protectionWarning,
                 },
             });
         } catch (error) {
