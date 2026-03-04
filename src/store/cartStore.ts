@@ -11,6 +11,8 @@ interface CartState {
     refundProtectionPrice: number;
     isProtectionSelected: boolean;
     refundProtectionToken: string | null
+    teakReady: boolean
+    setTeakReady: (ready: boolean) => void
     setRefundProtectionToken: (token: string | null) => void;
     setRefundProtection: (price: number, selected: boolean) => void;
     addItem: (event: Event, ticketType: TicketType, quantity?: number) => void;
@@ -49,6 +51,9 @@ export const useCartStore = create<CartState>()(
                     refundProtectionToken: token
                 });
             },
+
+            teakReady: false,
+                setTeakReady: (ready) => set({ teakReady: ready }),
 
             addItem: (event, ticketType, quantity = 1) => {
                 set((state) => {

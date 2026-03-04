@@ -15,6 +15,7 @@ declare global {
 
 export default function TeakWidget({ totalAmount }: TeakWidgetProps) {
   const configuredRef = useRef(false);
+  console.log("teackScriptLoded: "+  window.__teakScriptLoaded)
 
   useEffect(() => {
     if (!window.__teakScriptLoaded) {
@@ -53,18 +54,21 @@ export default function TeakWidget({ totalAmount }: TeakWidgetProps) {
         sandbox: true,
 
          loadedCb: function () {
-          console.log("Teak loaded");
+            console.log("Teak loaded");
 
-          const quote = window.tg?.get("quote");
-          const isProtected = window.tg?.isProtected();
-          console.log("Teak protection:" + isProtected);
-          
-            // consumer opts in update the refund protection price
-          if (isProtected && quote) {
-            useCartStore.getState().setRefundProtection(Number(quote), true);
-          } else {
-            useCartStore.getState().setRefundProtection(0, false);
-          }
+            //TEAK READY
+            useCartStore.getState().setTeakReady(true); 
+
+            const quote = window.tg?.get("quote");
+            const isProtected = window.tg?.isProtected();
+            console.log("Teak protection:" + isProtected);
+            
+              // consumer opts in update the refund protection price
+            if (isProtected && quote) {
+              useCartStore.getState().setRefundProtection(Number(quote), true);
+            } else {
+              useCartStore.getState().setRefundProtection(0, false);
+            }
         },
 
         optInCb: function () {
