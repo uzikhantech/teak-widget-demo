@@ -12,10 +12,8 @@ import { buildTeakPayload } from "@/lib/buildTeakPayload";
 
 export function CheckoutPage() {
     const navigate = useNavigate();
-    const { items, clearCart, appliedCoupon, getTotal, getDiscount, refundProtectionPrice, isProtectionSelected } = useCartStore();
+    const { items, clearCart, appliedCoupon, getTotal, getDiscount, refundProtectionPrice, refundProtectionToken, isProtectionSelected } = useCartStore();
     const [isProcessing, setIsProcessing] = useState(false);
-
-    console.log("Cart Items:", JSON.stringify(items, null, 2));
 
     // Form state
     const [formData, setFormData] = useState({
@@ -44,82 +42,7 @@ export function CheckoutPage() {
             </div>
         );
     }
-
-    //Fucntion to return fomratted payload
-    const buildTeakPayload = (orderId: string, token: string) => {
-        console.log("invoked")
-        if (!items.length) return null;
-
-        const formatDate = (date: string) =>
-            new Date(date).toISOString().split("T")[0];
-
-        const formatTimeTo24Hour = (time12h: string) => {
-            const [time, modifier] = time12h.split(" ");
-            let [hours, minutes] = time.split(":");
-
-            if (hours === "12") hours = "00";
-            if (modifier === "PM") {
-                hours = (parseInt(hours, 10) + 12).toString();
-            }
-
-            return `${hours.padStart(2, "0")}:${minutes}`;
-        };
-
-        const firstItem = items[0];
-
-        const payload = {
-            token,
-            order_number: orderId,
-            currency: "USD",
-
-            event: {
-                name: firstItem.event.name,
-                start_date: formatDate(firstItem.event.date),
-                start_time: formatTimeTo24Hour(firstItem.event.time),
-                end_date: formatDate(firstItem.event.date),
-                end_time: formatTimeTo24Hour(firstItem.event.time),
-                location: firstItem.event.venue, // better than location
-            },
-
-            customer: {
-                first_name: formData.firstName,
-                last_name: formData.lastName,
-                email: formData.email,
-                phone: formData.phone || "5555555555",
-            },
-
-            billing_address: {
-                address1: "123 Main St",
-                address2: "Ste 1",
-                city: "Phoenix",
-                zip_code: "85020",
-                state: "AZ",
-                country: "US",
-            },
-
-            items: items.flatMap((item, index) =>
-                Array.from({ length: item.quantity }).map((_, qtyIndex) => ({
-                    name: `${item.event.name} - ${item.ticketType.name}`,
-                    reference_number: `${orderId}-item-${index + 1}-${qtyIndex + 1}`,
-                    cost: item.ticketType.price.toString(),
-                    event: {
-                        name: item.event.name,
-                        start_date: formatDate(item.event.date),
-                        start_time: formatTimeTo24Hour(item.event.time),
-                        end_date: formatDate(item.event.date),
-                        end_time: formatTimeTo24Hour(item.event.time),
-                        location: item.event.venue,
-                    },
-                }))
-            ),
-
-            payment: {
-                type: "invoice",
-            },
-        };
-        console.log(JSON.stringify(payload, null, 2))
-        return payload;
-    };
+    
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -226,9 +149,35 @@ export function CheckoutPage() {
 
 
             //=========STEP 3 - Create TEAK protection order========//
-            if(isProtectionSelected){
+            if(isProtectionSelected && refundProtectionToken){
                 try{
+                    const teakPayload = buildTeakPayload(
+                        orderResult.orderId,
+                        refundProtectionToken, // temporary token if testing on frontend
+                        items,
+                        formData
+                    );
 
+                console.log("===== SENDING TO TEAK =====");
+                console.log(JSON.stringify(teakPayload, null, 2));
+
+                const teakResponse = await fetch(
+                    "http://localhost:3001/api/teak/order",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(teakPayload),
+                    }
+                );
+
+                if (!teakResponse.ok) {
+                    console.error("Teak API returned non-200 response");
+                } else {
+                    const teakResult = await teakResponse.json();
+                    console.log("Teak order success:", teakResult);
+                }
 
                 
                 } catch (teakError) {
@@ -276,7 +225,7 @@ export function CheckoutPage() {
                     Checkout
                 </h1>
                 <button
-                                    onClick={() => buildTeakPayload("123", "abc")}
+                                    onClick={() => buildTeakPayload('123',"abc",items, formData)}
                                     >
                                     Invoke
                                 </button>

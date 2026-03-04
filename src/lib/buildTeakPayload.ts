@@ -1,3 +1,7 @@
+// ============================================
+// Teak Payload Types
+// ============================================
+
 export interface TeakEvent {
     name: string;
     start_date: string;
@@ -15,8 +19,8 @@ export interface TeakItem {
 }
 
 export interface TeakPayload {
-    token: string;
-    order_number: string;
+    quote: string; // <-- Quote token from widget
+    order_number: string | null;
     currency: string;
     event?: TeakEvent;
     customer: {
@@ -39,12 +43,51 @@ export interface TeakPayload {
     };
 }
 
+// ============================================
+// Cart + Form Types
+// ============================================
+
+export interface CartItem {
+    event: {
+        id: string;
+        name: string;
+        date: string;
+        time: string;
+        venue: string;
+    };
+    ticketType: {
+        id: string;
+        name: string;
+        price: number;
+    };
+    quantity: number;
+}
+
+export interface CheckoutFormData {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone?: string;
+}
+
+// ============================================
+// Payload Builder
+// ============================================
+
 export const buildTeakPayload = (
     orderId: string,
-    token: string,
-    items: any[],
-    formData: any
+    quoteToken: string | null, // <-- widget quote token
+    items: CartItem[],
+    formData: CheckoutFormData
 ): TeakPayload => {
+
+    if (!quoteToken) {
+        throw new Error("Missing Teak quote token");
+    }
+
+    if (!items.length) {
+        throw new Error("Cannot build Teak payload: cart is empty");
+    }
 
     const formatDate = (date: string) =>
         new Date(date).toISOString().split("T")[0];
@@ -63,11 +106,12 @@ export const buildTeakPayload = (
 
     const firstItem = items[0];
 
-    return {
-        token,
+    const payload: TeakPayload = {
+        quote: quoteToken, // <-- quote token goes here
         order_number: orderId,
         currency: "USD",
 
+        // Root event (safe for single-event carts)
         event: {
             name: firstItem.event.name,
             start_date: formatDate(firstItem.event.date),
@@ -93,8 +137,9 @@ export const buildTeakPayload = (
             country: "US",
         },
 
+        // Expand items per quantity
         items: items.flatMap((item, index) => {
-            const expandedItems = [];
+            const expandedItems: TeakItem[] = [];
 
             for (let i = 0; i < item.quantity; i++) {
                 expandedItems.push({
@@ -119,4 +164,8 @@ export const buildTeakPayload = (
             type: "invoice",
         },
     };
+    console.log(JSON.stringify(payload, null, 2))
+    return payload;
 };
+
+ 

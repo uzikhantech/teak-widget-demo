@@ -1,5 +1,7 @@
 import express from "express";
 import cors from "cors";
+import dotenv from "dotenv";
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -268,24 +270,32 @@ app.post("/api/orders/:orderId/cancel", (req, res) => {
 
 app.post("/api/teak/order", async (req, res) => {
 
+    console.log("Calling refund protection order");
+
     const TEAK_API_BASE = process.env.TEAK_API_BASE;
     const TEAK_API_VERSION = process.env.TEAK_API_VERSION;
+
+    console.log("TEAK BASE URL" +TEAK_API_BASE + TEAK_API_VERSION)
 
     if (!TEAK_API_BASE || !TEAK_API_VERSION) {
         throw new Error("Missing TEAK API environment variables");
     }
 
     const API_URL = `${TEAK_API_BASE}${TEAK_API_VERSION}`;
+    console.log("API_URL: " + API_URL);
 
     try {
         const teakOrderPayload = req.body;
+        console.log("requ body: " + JSON.stringify(teakOrderPayload, null, 2));
+
+
 
     // STEP 1 — Obtain the JWT token
-    const authResponse = await fetch(API_URL,
+    const authResponse = await fetch(API_URL+'/auth/token',
       {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+        "Content-Type": "application/json",
           accept: "application/json",
         },
         body: JSON.stringify({
@@ -295,20 +305,24 @@ app.post("/api/teak/order", async (req, res) => {
       }
     );
 
+    console.log("JWT Tokem: "+ authResponse.status)
+
     //get the token
     const authData = await authResponse.json();
+    console.log("Auth Data: "+ JSON.stringify(authData.token))
+    console.log("JWT Tokem: "+ authData.token)
 
-    if (!authData.access_token) {
+    if (!authData.token) {
       throw new Error("JWT generation failed");
     }
 
      // STEP 2 — Create Order
-    const orderResponse = await fetch(API_URL,
+    const orderResponse = await fetch(API_URL+'/orders',
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `JWT ${authData.access_token}`,
+          Authorization: `JWT ${authData.token}`,
         },
         body: JSON.stringify(teakOrderPayload),
       }
