@@ -25,6 +25,7 @@ export function CheckoutPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   //for storing teak order failure:
   let protectionWarning: string | null = null;
+  let protectionAdded: boolean | null = null;
 
   // Form state
   const [formData, setFormData] = useState({
@@ -181,6 +182,8 @@ export function CheckoutPage() {
             console.error("Teak Protection Error");
             protectionWarning =
               "Your tickets were successfully purchased, but refund protection could not be added. You will not be charged for protection.";
+          } else {
+            protectionAdded = true;
           }
         } catch (teakError) {
           console.error("Teak Protection Error:" + teakError);
@@ -199,6 +202,7 @@ export function CheckoutPage() {
           paymentTransactionId: paymentResult.transactionId,
           //pass protection warning to confirmation order page
           protectionWarning,
+          protectionAdded,
         },
       });
     } catch (error) {
