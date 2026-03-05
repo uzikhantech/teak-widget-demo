@@ -9,6 +9,7 @@ interface LocationState {
   email?: string;
   protectionWarning?: string;
   protectionAdded?: boolean;
+  refundPolicy: any;
 }
 
 export function OrderConfirmationPage() {
@@ -19,6 +20,7 @@ export function OrderConfirmationPage() {
   const email = state?.email || "your email";
   const protectionWarning = state?.protectionWarning;
   const protectionAdded = state?.protectionAdded;
+  const refundPolicy = state?.refundPolicy;
 
   return (
     <div className="bg-neutral-50 min-h-screen">
@@ -54,6 +56,55 @@ export function OrderConfirmationPage() {
                 {protectionWarning
                   ? protectionWarning
                   : "Ticket Protection has been successfully added to your order. If you need to cancel for a covered reason, you can submit a refund request through your order details."}
+              </div>
+            )}
+
+            {/* Refund Protection Links */}
+            {refundPolicy && protectionAdded && (
+              <div className="mb-6 rounded-md border border-neutral-200 bg-white p-4 text-sm">
+                <h3 className="font-semibold text-neutral-900 mb-2">Refund Protection Details</h3>
+
+                <div className="space-y-1 text-neutral-700">
+                  {refundPolicy.refund_request_url && (
+                    <a
+                      href={refundPolicy.refund_request_url}
+                      target="_blank"
+                      className="block text-blue-600 underline"
+                    >
+                      Submit a Refund Request
+                    </a>
+                  )}
+
+                  {refundPolicy.certificate_url && (
+                    <a
+                      href={refundPolicy.certificate_url}
+                      target="_blank"
+                      className="block text-blue-600 underline"
+                    >
+                      View Protection Certificate
+                    </a>
+                  )}
+
+                  {refundPolicy.policy_pdf && (
+                    <a
+                      href={refundPolicy.policy_pdf}
+                      target="_blank"
+                      className="block text-blue-600 underline"
+                    >
+                      Download Policy PDF
+                    </a>
+                  )}
+
+                  {refundPolicy.faq_url && (
+                    <a
+                      href={refundPolicy.faq_url}
+                      target="_blank"
+                      className="block text-blue-600 underline"
+                    >
+                      Protection FAQ
+                    </a>
+                  )}
+                </div>
               </div>
             )}
 

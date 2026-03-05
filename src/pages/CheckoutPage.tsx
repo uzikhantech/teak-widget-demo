@@ -153,6 +153,7 @@ export function CheckoutPage() {
       }
 
       //=========STEP 3 - Create TEAK protection order========//
+      let teakResult = null;
       if (isProtectionSelected && refundProtectionToken) {
         try {
           const teakPayload = buildTeakPayload(
@@ -175,7 +176,7 @@ export function CheckoutPage() {
             body: JSON.stringify(teakPayload),
           });
 
-          const teakResult = await teakResponse.json();
+          teakResult = await teakResponse.json();
 
           //check refund protection results - do not block ticket transaction
           if (!teakResult.success || !teakResult.protectionCreated) {
@@ -200,6 +201,8 @@ export function CheckoutPage() {
           orderNumber: orderResult.orderId,
           email: formData.email,
           paymentTransactionId: paymentResult.transactionId,
+          //policy the refund policy details to the confirmation
+          refundPolicy: teakResult?.refundPolicy || null,
           //pass protection warning to confirmation order page
           protectionWarning,
           protectionAdded,
