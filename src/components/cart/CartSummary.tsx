@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useCartStore } from "@/store/cartStore";
 import { CouponInput } from "./CouponInput";
-// @ts-ignore
 import TeakWidget from "../teak/TeakWidget"
 
 interface CartSummaryProps {

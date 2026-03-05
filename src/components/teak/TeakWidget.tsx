@@ -1,7 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useCartStore } from "@/store/cartStore";
 
-
 interface TeakWidgetProps {
   totalAmount: number;
 }
@@ -15,7 +14,8 @@ declare global {
 
 export default function TeakWidget({ totalAmount }: TeakWidgetProps) {
   const configuredRef = useRef(false);
-  console.log("teackScriptLoded: "+  window.__teakScriptLoaded)
+
+  console.log("teackScriptLoded: " + window.__teakScriptLoaded);
 
   useEffect(() => {
     if (!window.__teakScriptLoaded) {
@@ -51,36 +51,58 @@ export default function TeakWidget({ totalAmount }: TeakWidgetProps) {
       window.tg?.("configure", {
         apiKey: import.meta.env.VITE_TEAK_API_PUB_KEY,
         items: [{ cost: totalAmount }],
+        referenceNumber: useCartStore.getState().cartId,
+        clearSelection: true,
         sandbox: true,
 
-         loadedCb: function () {
-            console.log("Teak loaded");
+        loadedCb: function () {
+          console.log("Teak loaded: " + useCartStore.getState().cartId);
 
-            //TEAK READY
-            useCartStore.getState().setTeakReady(true); 
+          const store = useCartStore.getState();
+          const currentCartId = store.cartId;
+          const previousCartId = store.previousCartId;
 
-            const quote = window.tg?.get("quote");
-            const isProtected = window.tg?.isProtected();
-            console.log("Teak protection:" + isProtected);
-            
-              // consumer opts in update the refund protection price
-            if (isProtected && quote) {
-              useCartStore.getState().setRefundProtection(Number(quote), true);
-            } else {
-              useCartStore.getState().setRefundProtection(0, false);
-            }
-        },
+          console.log("Teak loaded:", currentCartId);
+          console.log("Previous cart:", previousCartId);
 
-        optInCb: function () {
-           console.log("Opt in for protection");
+          //  detect new cart session so we can clear the selection
+          if (previousCartId !== currentCartId) {
+            console.log("New cart session detected — clearing widget");
+
+            window.tg?.("update", {
+              items: [{ cost: totalAmount || 1 }],
+              referenceNumber: currentCartId,
+              clearSelection: true,
+            });
+            //update previous cart id to current
+            store.setPreviousCartId(currentCartId);
+          }
+
+          //TEAK READY
+          useCartStore.getState().setTeakReady(true);
 
           const quote = window.tg?.get("quote");
           const isProtected = window.tg?.isProtected();
-          const quoteToken = window.tg?.get("token"); 
+          console.log("Teak protection:" + isProtected);
+
+          // consumer opts in update the refund protection price
+          if (isProtected && quote) {
+            useCartStore.getState().setRefundProtectionPrice(Number(quote), true);
+          } else {
+            useCartStore.getState().setRefundProtectionPrice(0, false);
+          }
+        },
+
+        optInCb: function () {
+          console.log("Opt in for protection");
+
+          const quote = window.tg?.get("quote");
+          const isProtected = window.tg?.isProtected();
+          const quoteToken = window.tg?.get("token");
 
           // consumer opts in update the refud protection price
           if (quote && quoteToken) {
-            useCartStore.getState().setRefundProtection(Number(quote), isProtected);
+            useCartStore.getState().setRefundProtectionPrice(Number(quote), isProtected);
             useCartStore.getState().setRefundProtectionToken(quoteToken);
           }
         },
@@ -89,14 +111,13 @@ export default function TeakWidget({ totalAmount }: TeakWidgetProps) {
           console.log("Opt out for protection");
 
           const isProtected = window.tg?.isProtected();
-          const quoteToken = window.tg?.get("token"); 
+          const quoteToken = window.tg?.get("token");
 
           if (quoteToken) {
-              useCartStore.getState().setRefundProtectionToken(quoteToken);
+            useCartStore.getState().setRefundProtectionToken(quoteToken);
           }
 
-          useCartStore.getState().setRefundProtection(0, isProtected);
-      
+          useCartStore.getState().setRefundProtectionPrice(0, isProtected);
         },
 
         updatedCb: function () {
@@ -104,40 +125,30 @@ export default function TeakWidget({ totalAmount }: TeakWidgetProps) {
 
           const quote = window.tg?.get("quote");
           const isProtected = window.tg?.isProtected();
-          const quoteToken = window.tg?.get("token"); 
+          const quoteToken = window.tg?.get("token");
 
-          if(quoteToken) {
+          if (quoteToken) {
             useCartStore.getState().setRefundProtectionToken(quoteToken);
           }
 
           //if consumer adjusts cart products make sure update the protection price
           if (isProtected && quote) {
-            useCartStore
-              .getState()
-              .setRefundProtection(Number(quote), true);
+            useCartStore.getState().setRefundProtectionPrice(Number(quote), true);
           } else {
-            useCartStore
-              .getState()
-              .setRefundProtection(0, false);
+            useCartStore.getState().setRefundProtectionPrice(0, false);
           }
         },
 
         onErrorCb: function (message: string) {
           console.error("Teak error:", message);
-          useCartStore
-            .getState()
-            .setRefundProtection(0, false); 
-            useCartStore.getState().setRefundProtectionToken(null);
+          useCartStore.getState().setRefundProtectionPrice(0, false);
+          useCartStore.getState().setRefundProtectionToken(null);
         },
-
       });
     } else {
-      // If price changes AFTER init, update items
-      // If subtotal changes after initial load
-      console.log("Calling tg update with:", totalAmount)
-
       window.tg?.("update", {
         items: [{ cost: totalAmount }],
+        clearSelection: false,
       });
     }
   }, [totalAmount]);
