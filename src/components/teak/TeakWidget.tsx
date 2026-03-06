@@ -15,9 +15,32 @@ declare global {
 export default function TeakWidget({ totalAmount }: TeakWidgetProps) {
   const configuredRef = useRef(false);
 
-  console.log("teackScriptLoded: " + window.__teakScriptLoaded);
+  console.log("teakScriptLoaded:", window.__teakScriptLoaded);
 
   useEffect(() => {
+    // ============================================
+    // FREE CART GUARD
+    // ============================================
+    // Teak cannot accept cost = 0
+    // When coupon makes cart free we clear the widget
+    if (totalAmount <= 0) {
+      console.log("Cart total is free — clearing Teak widget");
+
+      // Tear down the widget completely
+      window.tg?.("clear");
+
+      const store = useCartStore.getState();
+      store.setRefundProtectionPrice(0, false);
+      store.setRefundProtectionToken(null);
+      store.setTeakReady(false);
+
+      configuredRef.current = false;
+
+      return;
+    }
+    // ============================================
+    // LOAD SCRIPT (ONLY ONCE)
+    // ============================================
     if (!window.__teakScriptLoaded) {
       window.__teakScriptLoaded = true;
 
@@ -44,52 +67,54 @@ export default function TeakWidget({ totalAmount }: TeakWidgetProps) {
       })(window, document, "script", "tg");
     }
 
-    // Only configure once
+    // ============================================
+    // CONFIGURE WIDGET (ONLY ONCE)
+    // ============================================
     if (!configuredRef.current) {
       configuredRef.current = true;
 
       window.tg?.("configure", {
         apiKey: import.meta.env.VITE_TEAK_API_PUB_KEY,
-        items: [{ cost: totalAmount }],
+        items: [{ cost: Math.max(totalAmount, 1) }],
         referenceNumber: useCartStore.getState().cartId,
         persist: true,
         sandbox: true,
 
         loadedCb: function () {
-          console.log("Teak loaded: " + useCartStore.getState().cartId);
+          console.log("Teak loaded:", useCartStore.getState().cartId);
 
           const store = useCartStore.getState();
           const currentCartId = store.cartId;
           const previousCartId = store.previousCartId;
 
-          console.log("Teak loaded:", currentCartId);
+          console.log("Current cart:", currentCartId);
           console.log("Previous cart:", previousCartId);
 
-          //  detect new cart session so we can clear the selection
+          // Detect new cart session
           if (previousCartId && previousCartId !== currentCartId) {
             console.log("New cart session detected — clearing widget");
 
             window.tg?.("update", {
-              items: [{ cost: totalAmount || 1 }],
+              items: [{ cost: Math.max(totalAmount, 1) }],
               referenceNumber: currentCartId,
               clearSelection: true,
             });
-            //update previous cart id to current
+
             store.setPreviousCartId(currentCartId);
           }
 
-          //TEAK READY
-          useCartStore.getState().setTeakReady(true);
+          // TEAK READY
+          store.setTeakReady(true);
 
           const quote = window.tg?.get("quote");
           const isProtected = window.tg?.isProtected();
-          console.log("Teak protection:" + isProtected);
 
-          // consumer opts in update the refund protection price
+          console.log("Teak protection:", isProtected);
+
           if (isProtected && quote) {
-            useCartStore.getState().setRefundProtectionPrice(Number(quote), true);
+            store.setRefundProtectionPrice(Number(quote), true);
           } else {
-            useCartStore.getState().setRefundProtectionPrice(0, false);
+            store.setRefundProtectionPrice(0, false);
           }
         },
 
@@ -100,10 +125,10 @@ export default function TeakWidget({ totalAmount }: TeakWidgetProps) {
           const isProtected = window.tg?.isProtected();
           const quoteToken = window.tg?.get("token");
 
-          // consumer opts in update the refud protection price
           if (quote && quoteToken) {
-            useCartStore.getState().setRefundProtectionPrice(Number(quote), isProtected);
-            useCartStore.getState().setRefundProtectionToken(quoteToken);
+            const store = useCartStore.getState();
+            store.setRefundProtectionPrice(Number(quote), isProtected);
+            store.setRefundProtectionToken(quoteToken);
           }
         },
 
@@ -113,11 +138,13 @@ export default function TeakWidget({ totalAmount }: TeakWidgetProps) {
           const isProtected = window.tg?.isProtected();
           const quoteToken = window.tg?.get("token");
 
+          const store = useCartStore.getState();
+
           if (quoteToken) {
-            useCartStore.getState().setRefundProtectionToken(quoteToken);
+            store.setRefundProtectionToken(quoteToken);
           }
 
-          useCartStore.getState().setRefundProtectionPrice(0, isProtected);
+          store.setRefundProtectionPrice(0, isProtected);
         },
 
         updatedCb: function () {
@@ -127,25 +154,33 @@ export default function TeakWidget({ totalAmount }: TeakWidgetProps) {
           const isProtected = window.tg?.isProtected();
           const quoteToken = window.tg?.get("token");
 
+          const store = useCartStore.getState();
+
           if (quoteToken) {
-            useCartStore.getState().setRefundProtectionToken(quoteToken);
+            store.setRefundProtectionToken(quoteToken);
           }
 
-          //if consumer adjusts cart products make sure update the protection price
           if (isProtected && quote) {
-            useCartStore.getState().setRefundProtectionPrice(Number(quote), true);
+            store.setRefundProtectionPrice(Number(quote), true);
           } else {
-            useCartStore.getState().setRefundProtectionPrice(0, false);
+            store.setRefundProtectionPrice(0, false);
           }
         },
 
         onErrorCb: function (message: string) {
           console.error("Teak error:", message);
-          useCartStore.getState().setRefundProtectionPrice(0, false);
-          useCartStore.getState().setRefundProtectionToken(null);
+
+          const store = useCartStore.getState();
+          store.setRefundProtectionPrice(0, false);
+          store.setRefundProtectionToken(null);
         },
       });
     } else {
+      // ============================================
+      // UPDATE PRICE WHEN CART CHANGES
+      // ============================================
+      console.log("PRICE UPDATED");
+
       window.tg?.("update", {
         items: [{ cost: totalAmount }],
         clearSelection: false,

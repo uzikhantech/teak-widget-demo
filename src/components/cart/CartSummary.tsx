@@ -84,54 +84,59 @@ export function CartSummary({
 
       {/* Teak Refund Protection */}
       <Separator className="my-4" />
-      <div
-        id="teak-widget"
-        className={`rounded-md transition-all duration-700 ease-out ${
-          highlightProtection
-            ? "ring-2 ring-emerald-400 ring-offset-2 bg-emerald-50 shadow-lg -translate-y-1"
-            : ""
-        }`}
-      >
-        <TeakWidget totalAmount={Number(discountedSubtotal.toFixed(2))} />
-      </div>
-      {/* <Separator className="my-4" /> */}
-
-      {/*Add in line protection price to cart summary component or show a warning*/}
-      {teakReady && (
+      {discountedSubtotal > 0 && (
         <>
-          {/* <Separator className="my-4" /> */}
+          <div
+            id="teak-widget"
+            className={`rounded-md transition-all duration-700 ease-out ${
+              highlightProtection
+                ? "ring-2 ring-emerald-400 ring-offset-2 bg-emerald-50 shadow-lg -translate-y-1"
+                : ""
+            }`}
+          >
+            <TeakWidget totalAmount={Number(discountedSubtotal.toFixed(2))} />
+          </div>
 
-          {isProtectionSelected && refundProtectionPrice > 0 ? null : (
-            <div className="mt-3 rounded-md bg-amber-50 px-3 py-2">
-              <div className="flex items-start gap-2 text-sm">
-                <span className="text-amber-600">⚠️</span>
+          {/*Add in line protection price to cart summary component or show a warning*/}
+          {teakReady && (
+            <>
+              {isProtectionSelected && refundProtectionPrice > 0 ? null : (
+                <div className="mt-3 rounded-md bg-amber-50 px-3 py-2">
+                  <div className="flex items-start gap-2 text-sm">
+                    <span className="text-amber-600">⚠️</span>
 
-                <div>
-                  <p className="font-medium text-amber-800">Tickets are not protected</p>
+                    <div>
+                      <p className="font-medium text-amber-800">Tickets are not protected</p>
 
-                  <p className="text-xs text-amber-700">
-                    If you can't attend due to illness, emergencies, or travel disruptions, you may
-                    lose your{" "}
-                    <span className="font-semibold text-neutral-900">${getTotal().toFixed(2)}</span>{" "}
-                    order. Protect it for only{" "}
-                    <span className="font-semibold text-emerald-700">
-                      ${window.tg?.get("quote")}
-                    </span>
-                    .
-                  </p>
+                      <p className="text-xs text-amber-700">
+                        If you can't attend due to illness, emergencies, or travel disruptions, you
+                        may lose your{" "}
+                        <span className="font-semibold text-neutral-900">
+                          ${getTotal().toFixed(2)}
+                        </span>{" "}
+                        order. Protect it for only{" "}
+                        <span className="font-semibold text-emerald-700">
+                          ${window.tg?.get("quote")}
+                        </span>
+                        .
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
+
+              <Separator className="my-4" />
+            </>
+          )}
+          {isProtectionSelected && (
+            <div className="flex items-center justify-between text-sm">
+              <span>Refund Protection</span>
+              <span className="font-medium text-neutral-900">
+                ${refundProtectionPrice.toFixed(2)}
+              </span>
             </div>
           )}
-
-          <Separator className="my-4" />
         </>
-      )}
-      {isProtectionSelected && (
-        <div className="flex items-center justify-between text-sm">
-          <span>Refund Protection</span>
-          <span className="font-medium text-neutral-900">${refundProtectionPrice.toFixed(2)}</span>
-        </div>
       )}
 
       <div className="flex items-center justify-between">
