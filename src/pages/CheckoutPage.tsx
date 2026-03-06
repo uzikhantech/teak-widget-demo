@@ -73,9 +73,8 @@ export function CheckoutPage() {
       // Use protection price from cart store
       const refundProtectionFee = refundProtectionPrice || 0;
 
-      // 🔥 Include protection in total
+      // Include protection in total
       const total = discountedSubtotal + serviceFee + tax + refundProtectionFee;
-      //const total = discountedSubtotal + serviceFee + tax;
 
       // ============Step 1: Process payment first======================//
       const paymentResponse = await fetch("http://localhost:3001/api/payments", {
@@ -179,14 +178,6 @@ export function CheckoutPage() {
 
           teakResult = await teakResponse.json();
 
-          //check refund protection results - do not block ticket transaction
-          // if (!teakResult.success || !teakResult.protectionCreated) {
-          //   console.error("Teak Protection Error");
-          //   protectionWarning =
-          //     "Your tickets were successfully purchased, but refund protection could not be added. You will not be charged for protection.";
-          // } else {
-          //   protectionAdded = true;
-          // }
           if (!teakResult.success) {
             console.error("Teak Protection Error");
             protectionWarning =

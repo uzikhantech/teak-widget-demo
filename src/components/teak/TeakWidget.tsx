@@ -42,7 +42,7 @@ export default function TeakWidget({ totalAmount }: TeakWidgetProps) {
     // LOAD SCRIPT (ONLY ONCE)
     // ============================================
     if (!window.__teakScriptLoaded) {
-      window.__teakScriptLoaded = true;
+      window.__teakScriptLoaded = true; //In React development mode, React intentionally runs effects twice.
 
       (function (w: any, d: Document, c: string, n: string, s?: any, p?: any) {
         w[n] =
