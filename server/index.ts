@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import { retryFetch } from "./utlis/retryFetch";
 dotenv.config();
 
 const app = express();
@@ -290,7 +291,7 @@ app.post("/api/teak/order", async (req, res) => {
     console.log("request body: " + JSON.stringify(teakOrderPayload, null, 2));
 
     // STEP 1 — Obtain the JWT token
-    const authResponse = await fetch(API_URL + "/auth/token", {
+    const authResponse = await retryFetch(API_URL + "/auth/token", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
