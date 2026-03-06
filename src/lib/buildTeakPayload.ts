@@ -21,8 +21,8 @@ export interface TeakItem {
 }
 
 export interface TeakPayload {
-  quote: string; // <-- Quote token from widget
-  order_number: string | null;
+  quote: string; // Quote token from widget
+  order_number: string | null; //merchants order id
   currency: string;
   event?: TeakEvent;
   customer: {
@@ -78,7 +78,7 @@ export interface CheckoutFormData {
 
 export const buildTeakPayload = (
   orderId: string,
-  quoteToken: string | null, // <-- widget quote token
+  quoteToken: string | null, // widget quote token
   items: CartItem[],
   formData: CheckoutFormData,
   subtotal: number,
@@ -109,7 +109,7 @@ export const buildTeakPayload = (
   const firstItem = items[0];
 
   const payload: TeakPayload = {
-    quote: quoteToken, // <-- quote token goes here
+    quote: quoteToken,
     order_number: orderId,
     currency: "USD",
 

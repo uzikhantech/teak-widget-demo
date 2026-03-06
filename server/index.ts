@@ -290,7 +290,7 @@ app.post("/api/teak/order", async (req, res) => {
     const teakOrderPayload = req.body;
     console.log("request body: " + JSON.stringify(teakOrderPayload, null, 2));
 
-    // STEP 1 — Obtain the JWT token
+    // ==========STEP 1: Get Auth token: /auth/token ==============//
     const authResponse = await retryFetch(API_URL + "/auth/token", {
       method: "POST",
       headers: {
@@ -328,10 +328,12 @@ app.post("/api/teak/order", async (req, res) => {
         protectionCreated: false,
         message: "Refund protection service unavailable: JWT token missing from auth response",
       });
+    } else {
+      console.log("GOT THE AUTH TOKEN");
     }
 
-    // STEP 2 — Create Order
-    const orderResponse = await fetch(API_URL + "/orders", {
+    // =========== STEP 2:Create Order :/orders================//
+    const orderResponse = await retryFetch(API_URL + "/orders", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -340,7 +342,9 @@ app.post("/api/teak/order", async (req, res) => {
       body: JSON.stringify(teakOrderPayload),
     });
 
+    //---------------------------------------------------//
     //Handle Failure - miss protection order from /orders
+    //---------------------------------------------------//
     if (!orderResponse.ok) {
       const errorBody = await orderResponse.text();
       console.error("Teak Order Creation Failed:", errorBody);
@@ -352,9 +356,30 @@ app.post("/api/teak/order", async (req, res) => {
       });
     }
 
-    const orderData = await orderResponse.json();
+    // -----------------------------
+    // Handle Opt-Out (204 no content)
+    // -----------------------------
+    if (orderResponse.status === 204) {
+      console.log("Protection order processed: OPT-OUT");
+      return res.status(200).json({
+        success: true,
+        protectionCreated: false,
+        teakOrder: null,
+        refundPolicy: null,
+        message: "User opted out of refund protection",
+      });
+    }
 
-    //STEP 3 - Fetch the policy meta data
+    // -----------------------------
+    // Handle Opt-In (201 Created with JSON Response)
+    // -----------------------------
+    let orderData = null;
+    if (orderResponse.status === 201) {
+      console.log("Protection order processed: OPT-IN");
+      orderData = await orderResponse.json();
+    }
+
+    // =======STEP 3: policy meta data :/ordres/{ordernumber}/metadata?email====/
     let policyMetadata = null;
 
     try {
@@ -374,6 +399,7 @@ app.post("/api/teak/order", async (req, res) => {
 
       if (metadataResponse.ok) {
         policyMetadata = await metadataResponse.json();
+        console.log("Protection Policy Retrieved from TEAK");
       } else {
         console.warn("Unable to fetch metadata");
       }
@@ -381,16 +407,16 @@ app.post("/api/teak/order", async (req, res) => {
       console.warn("Metadata request failed");
     }
 
-    //Handle Success
+    //Handle Success (opt-in)
     return res.status(200).json({
       success: true,
       protectionCreated: true,
       teakOrder: orderData,
       refundPolicy: policyMetadata,
-      message: "Refund Protection Success",
+      message: "Refund Protection Success: User opted in for refund protection",
     });
   } catch (err: any) {
-    console.log("Teak Refund Protection Order Error");
+    console.log("Teak Refund Protection Order Error: " + err);
     return res.status(200).json({
       success: false,
       protectionCreated: false,

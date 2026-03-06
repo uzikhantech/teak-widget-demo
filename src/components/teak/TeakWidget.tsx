@@ -149,7 +149,6 @@ export default function TeakWidget({ totalAmount }: TeakWidgetProps) {
       window.tg?.("update", {
         items: [{ cost: totalAmount }],
         clearSelection: false,
-        persist: true,
       });
     }
   }, [totalAmount]);

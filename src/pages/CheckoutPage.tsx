@@ -26,6 +26,7 @@ export function CheckoutPage() {
   //for storing teak order failure:
   let protectionWarning: string | null = null;
   let protectionAdded: boolean | null = null;
+  const optedIn = isProtectionSelected === true;
 
   // Form state
   const [formData, setFormData] = useState({
@@ -154,11 +155,11 @@ export function CheckoutPage() {
 
       //=========STEP 3 - Create TEAK protection order========//
       let teakResult = null;
-      if (isProtectionSelected && refundProtectionToken) {
+      if (refundProtectionToken) {
         try {
           const teakPayload = buildTeakPayload(
             orderResult.orderId,
-            refundProtectionToken, // temporary token if testing on frontend
+            refundProtectionToken,
             items,
             formData,
             getTotal(),
@@ -179,17 +180,30 @@ export function CheckoutPage() {
           teakResult = await teakResponse.json();
 
           //check refund protection results - do not block ticket transaction
-          if (!teakResult.success || !teakResult.protectionCreated) {
+          // if (!teakResult.success || !teakResult.protectionCreated) {
+          //   console.error("Teak Protection Error");
+          //   protectionWarning =
+          //     "Your tickets were successfully purchased, but refund protection could not be added. You will not be charged for protection.";
+          // } else {
+          //   protectionAdded = true;
+          // }
+          if (!teakResult.success) {
             console.error("Teak Protection Error");
             protectionWarning =
-              "Your tickets were successfully purchased, but refund protection could not be added. You will not be charged for protection.";
-          } else {
+              "Your tickets were successfully purchased, but refund protection could not be added. You will not be charged for protection. Please call us at 1800-321-3232";
+          }
+          //teak order good and protection order was created
+          if (teakResult.success && teakResult.protectionCreated) {
             protectionAdded = true;
           }
         } catch (teakError) {
           console.error("Teak Protection Error:" + teakError);
-          protectionWarning =
-            "Your tickets were successfully purchased, but refund protection could not be added. You will not be charged for protection.";
+          if (optedIn) {
+            protectionWarning =
+              "Your tickets were successfully purchased, but refund protection could not be added. You will not be charged for protection. Please call us at 1800-321-3232";
+          } else {
+            protectionWarning = null;
+          }
         }
       }
 
