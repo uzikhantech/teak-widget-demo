@@ -99,30 +99,25 @@ export function CartSummary({
       {/*Add in line protection price to cart summary component or show a warning*/}
       {teakReady && (
         <>
-          <Separator className="my-4" />
+          {/* <Separator className="my-4" /> */}
 
-          {isProtectionSelected && refundProtectionPrice > 0 ? (
-            <div className="mt-3 rounded-md bg-emerald-50 px-3 py-2">
-              <div className="flex items-center justify-between text-sm">
-                <div>
-                  <p className="font-medium text-emerald-800">Refund Protection</p>
-                  <p className="text-xs text-emerald-700">
-                    Your tickets are covered if you can’t attend.
-                  </p>
-                </div>
-                <span className="font-semibold text-emerald-900">
-                  ${refundProtectionPrice.toFixed(2)}
-                </span>
-              </div>
-            </div>
-          ) : (
+          {isProtectionSelected && refundProtectionPrice > 0 ? null : (
             <div className="mt-3 rounded-md bg-amber-50 px-3 py-2">
               <div className="flex items-start gap-2 text-sm">
                 <span className="text-amber-600">⚠️</span>
+
                 <div>
                   <p className="font-medium text-amber-800">Tickets are not protected</p>
+
                   <p className="text-xs text-amber-700">
-                    You will not be eligible for a refund if you cannot attend.
+                    If you can't attend due to illness, emergencies, or travel disruptions, you may
+                    lose your{" "}
+                    <span className="font-semibold text-neutral-900">${getTotal().toFixed(2)}</span>{" "}
+                    order. Protect it for only{" "}
+                    <span className="font-semibold text-emerald-700">
+                      ${window.tg?.get("quote")}
+                    </span>
+                    .
                   </p>
                 </div>
               </div>
@@ -131,6 +126,12 @@ export function CartSummary({
 
           <Separator className="my-4" />
         </>
+      )}
+      {isProtectionSelected && (
+        <div className="flex items-center justify-between text-sm">
+          <span>Refund Protection</span>
+          <span className="font-medium text-neutral-900">${refundProtectionPrice.toFixed(2)}</span>
+        </div>
       )}
 
       <div className="flex items-center justify-between">
