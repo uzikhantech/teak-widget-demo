@@ -52,7 +52,7 @@ export default function TeakWidget({ totalAmount }: TeakWidgetProps) {
         apiKey: import.meta.env.VITE_TEAK_API_PUB_KEY,
         items: [{ cost: totalAmount }],
         referenceNumber: useCartStore.getState().cartId,
-        clearSelection: true,
+        persist: true,
         sandbox: true,
 
         loadedCb: function () {
@@ -66,7 +66,7 @@ export default function TeakWidget({ totalAmount }: TeakWidgetProps) {
           console.log("Previous cart:", previousCartId);
 
           //  detect new cart session so we can clear the selection
-          if (previousCartId !== currentCartId) {
+          if (previousCartId && previousCartId !== currentCartId) {
             console.log("New cart session detected — clearing widget");
 
             window.tg?.("update", {
@@ -149,6 +149,7 @@ export default function TeakWidget({ totalAmount }: TeakWidgetProps) {
       window.tg?.("update", {
         items: [{ cost: totalAmount }],
         clearSelection: false,
+        persist: true,
       });
     }
   }, [totalAmount]);
