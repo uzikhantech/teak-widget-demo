@@ -111,7 +111,7 @@ export default function TeakWidget({ totalAmount }: TeakWidgetProps) {
 
           console.log("Teak protection:", isProtected);
 
-          if (isProtected && quote) {
+          if (quote) {
             store.setRefundProtectionPrice(Number(quote), true);
           } else {
             store.setRefundProtectionPrice(0, false);
@@ -160,7 +160,7 @@ export default function TeakWidget({ totalAmount }: TeakWidgetProps) {
             store.setRefundProtectionToken(quoteToken);
           }
 
-          if (isProtected && quote) {
+          if (quote) {
             store.setRefundProtectionPrice(Number(quote), true);
           } else {
             store.setRefundProtectionPrice(0, false);

@@ -86,48 +86,39 @@ export function CartSummary({
       <Separator className="my-4" />
       {discountedSubtotal > 0 && (
         <>
-          <div
-            id="teak-widget"
-            className={`rounded-md transition-all duration-700 ease-out ${
-              highlightProtection
-                ? "ring-2 ring-emerald-400 ring-offset-2 bg-emerald-50 shadow-lg -translate-y-1"
-                : ""
-            }`}
-          >
-            <TeakWidget totalAmount={Number(discountedSubtotal.toFixed(2))} />
+          {/* Refund Protection Wrapper */}
+          <div className="relative rounded-lg border border-neutral-200 bg-white p-4 shadow-sm">
+            {/* Recommended badge intersecting border */}
+            <div className="absolute -top-3 right-4 bg-emerald-600 text-white text-xs font-medium px-2 py-1 rounded shadow">
+              Recommended
+            </div>
+
+            {/* Title */}
+            <h3 className="text-sm font-semibold text-neutral-900 mb-2">Refund Protection</h3>
+
+            {/* Explanation */}
+            <p className="text-xs text-neutral-600 mb-4">
+              Protect your tickets and receive a refund if you can't attend due to illness,
+              emergencies, or travel disruptions. Coverage is available for only{" "}
+              <span className="font-semibold text-emerald-700">${window.tg?.get("quote")}</span>.
+            </p>
+
+            {/* Teak Widget */}
+            <div
+              id="teak-widget"
+              className={`rounded-md transition-all duration-700 ease-out ${
+                highlightProtection
+                  ? "ring-2 ring-emerald-400 ring-offset-2 bg-emerald-50 shadow-lg -translate-y-1"
+                  : ""
+              }`}
+            >
+              <TeakWidget totalAmount={Number(discountedSubtotal.toFixed(2))} />
+            </div>
           </div>
 
-          {/*Add in line protection price to cart summary component or show a warning*/}
-          {teakReady && (
-            <>
-              {isProtectionSelected && refundProtectionPrice > 0 ? null : (
-                <div className="mt-3 rounded-md bg-amber-50 px-3 py-2">
-                  <div className="flex items-start gap-2 text-sm">
-                    <span className="text-amber-600">⚠️</span>
+          <Separator className="my-4" />
 
-                    <div>
-                      <p className="font-medium text-amber-800">Tickets are not protected</p>
-
-                      <p className="text-xs text-amber-700">
-                        If you can't attend due to illness, emergencies, or travel disruptions, you
-                        may lose your{" "}
-                        <span className="font-semibold text-neutral-900">
-                          ${getTotal().toFixed(2)}
-                        </span>{" "}
-                        order. Protect it for only{" "}
-                        <span className="font-semibold text-emerald-700">
-                          ${window.tg?.get("quote")}
-                        </span>
-                        .
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <Separator className="my-4" />
-            </>
-          )}
+          {/* Cart line item when protection selected */}
           {isProtectionSelected && (
             <div className="flex items-center justify-between text-sm">
               <span>Refund Protection</span>
