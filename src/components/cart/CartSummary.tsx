@@ -22,7 +22,6 @@ export function CartSummary({
     getDiscount,
     refundProtectionPrice,
     isProtectionSelected,
-    teakReady,
   } = useCartStore();
   const subtotal = getTotal();
   const discount = getDiscount();
@@ -119,7 +118,7 @@ export function CartSummary({
           <Separator className="my-4" />
 
           {/* Cart line item when protection selected */}
-          {isProtectionSelected && (
+          {window.tg?.isProtected() && (
             <div className="flex items-center justify-between text-sm">
               <span>Refund Protection</span>
               <span className="font-medium text-neutral-900">
