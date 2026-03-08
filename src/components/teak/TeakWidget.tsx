@@ -171,6 +171,7 @@ export default function TeakWidget({ totalAmount }: TeakWidgetProps) {
           console.error("Teak error:", message);
 
           const store = useCartStore.getState();
+          store.setTeakReady(false);
           store.setRefundProtectionPrice(0, false);
           store.setRefundProtectionToken(null);
         },
