@@ -75,6 +75,7 @@ export default function TeakWidget({ totalAmount }: TeakWidgetProps) {
 
       window.tg?.("configure", {
         apiKey: import.meta.env.VITE_TEAK_API_PUB_KEY,
+        // Ensure cost is never 0 to avoid widget calculation errors
         items: [{ cost: Math.max(totalAmount, 1) }],
         referenceNumber: useCartStore.getState().cartId,
         persist: true,
@@ -95,6 +96,7 @@ export default function TeakWidget({ totalAmount }: TeakWidgetProps) {
             console.log("New cart session detected — clearing widget");
 
             window.tg?.("update", {
+              // Ensure cost is never 0 to avoid widget calculation errors
               items: [{ cost: Math.max(totalAmount, 1) }],
               referenceNumber: currentCartId,
               clearSelection: true,
@@ -182,7 +184,7 @@ export default function TeakWidget({ totalAmount }: TeakWidgetProps) {
       console.log("PRICE UPDATED");
 
       window.tg?.("update", {
-        items: [{ cost: totalAmount }],
+        items: [{ cost: Math.max(totalAmount, 1) }],
         clearSelection: false,
       });
     }

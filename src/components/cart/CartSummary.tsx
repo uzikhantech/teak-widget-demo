@@ -31,7 +31,8 @@ export function CartSummary({
   const serviceFee = discountedSubtotal * 0.1; // 10% service fee
   const tax = discountedSubtotal * 0.08; // 8% tax
   const protectionPrice = isProtectionSelected ? refundProtectionPrice : 0; //TEAK Protection price when OPT IN
-  const total = discountedSubtotal + serviceFee + tax + protectionPrice;
+  const total =
+    discountedSubtotal === 0 ? 0 : discountedSubtotal + serviceFee + tax + protectionPrice;
 
   if (items.length === 0) {
     return null;

@@ -154,7 +154,7 @@ export function CheckoutPage() {
 
       //=========STEP 3 - Create TEAK protection order========//
       let teakResult = null;
-      if (refundProtectionToken) {
+      if (refundProtectionToken && discountedSubtotal > 0) {
         try {
           const teakPayload = buildTeakPayload(
             orderResult.orderId,
