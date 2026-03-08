@@ -37,7 +37,38 @@ The project originally began from the official RefundTix demo repository and was
 - Service fee (10%) and tax (8%) calculations
 - Order confirmation with unique order ID
 
-### 5. Account & Order Management
+### 5. Refund Protection (Teak Integration)
+
+This project integrates the Teak Refund Protection widget to allow customers to optionally protect their ticket purchase.
+
+#### Widget Behavior
+
+- The widget dynamically calculates refund protection pricing based on the cart total.
+- Customers may opt in or opt out of protection during checkout.
+- If selected, a protection token is generated and stored for order submission.
+
+#### Protection Order Flow
+
+1. Customer completes the primary ticket purchase.
+2. If protection was selected, the backend submits a request to the Teak Orders API.
+3. Each ticket line item is submitted to Teak as its own protected item.
+4. Protection confirmation is stored with the order record.
+
+#### Important Integration Rules
+
+- Protection must only be submitted after the primary ticket purchase succeeds.
+- Each cart line item is submitted as a separate protected item.
+- Orders with multiple ticket types create multiple protection items within a single Teak order.
+
+#### Error Handling
+
+The integration is designed with resilience in mind:
+
+- Protection failures do not block ticket purchases.
+- Customers are notified if protection fails while their tickets remain confirmed.
+- Retry logic is used for temporary API failures.
+
+### 6. Account & Order Management
 
 - Email-based order lookup (no authentication required)
 - Order history with status tracking (Confirmed/Refunded)
@@ -62,10 +93,25 @@ npm run dev
 - Frontend: http://localhost:5173
 - Backend: http://localhost:3001
 
-### 5. DEV NOTES
+## Environment Variables
 
-- The Teak order should ONLY be submitted after your primary transaction (on the ticketing platform) is successfully completed.
-- Each line item in the cart needs to be submitted as an item in order API call.
-- Submit an Order for a single line item.
-- Submit an Order for multiple line items.
-- Each line item in the cart receives its own policy.
+This project uses environment variables to securely configure the Teak widget and backend API integration.
+
+### Frontend Environment Variables
+
+Create a `.env` file in the root of the project.
+
+```env
+VITE_TEAK_PUBLIC_KEY=your_teak_public_key
+```
+
+### Backend Environment Variables
+
+Create a `.env` file in the server folder of the project.
+
+```env
+TEAK_PUBLIC_KEY=your_teak_public_key
+TEAK_SECRET_KEY=your_teak_secret_key
+TEAK_API_BASE=https://api.sandbox.protecht.com/api/
+TEAK_API_VERSION=v2
+```

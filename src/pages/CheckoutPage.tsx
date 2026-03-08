@@ -237,12 +237,6 @@ export function CheckoutPage() {
 
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <h1 className="text-2xl font-bold text-neutral-900 sm:text-3xl">Checkout</h1>
-        <button
-          onClick={() => buildTeakPayload("123", "abc", items, formData, getTotal(), getDiscount())}
-        >
-          Invoke
-        </button>
-
         <form onSubmit={handleSubmit}>
           <div className="mt-8 grid gap-8 lg:grid-cols-3">
             {/* Checkout Form */}

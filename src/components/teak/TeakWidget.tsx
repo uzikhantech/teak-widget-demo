@@ -151,7 +151,6 @@ export default function TeakWidget({ totalAmount }: TeakWidgetProps) {
           console.log("Quote updated");
 
           const quote = window.tg?.get("quote");
-          const isProtected = window.tg?.isProtected();
           const quoteToken = window.tg?.get("token");
 
           const store = useCartStore.getState();

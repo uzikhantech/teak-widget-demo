@@ -4,7 +4,6 @@ import { Separator } from "@/components/ui/separator";
 import { useCartStore } from "@/store/cartStore";
 import { CouponInput } from "./CouponInput";
 import TeakWidget from "../teak/TeakWidget";
-import { useState, useEffect } from "react";
 
 interface CartSummaryProps {
   showCheckoutButton?: boolean;
