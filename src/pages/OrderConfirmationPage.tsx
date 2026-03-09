@@ -45,69 +45,79 @@ export function OrderConfirmationPage() {
             <Separator className="my-6" />
 
             {/* Graceful Protection Warning if order protection fails */}
-            {(protectionWarning || protectionAdded) && (
-              <div
-                className={`mb-6 rounded-md border p-4 text-sm ${
-                  protectionWarning
-                    ? "border-yellow-200 bg-yellow-50 text-yellow-800"
-                    : "border-green-200 bg-green-50 text-green-800"
-                }`}
-              >
-                {protectionWarning
-                  ? protectionWarning
-                  : "Ticket Protection has been successfully added to your order. If you need to cancel for a covered reason, you can submit a refund request through your order details."}
+            {protectionWarning && (
+              <div className="mb-6 rounded-md border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800">
+                {protectionWarning}
               </div>
             )}
 
             {/* Refund Protection Links */}
             {refundPolicy && protectionAdded && (
-              <div className="mb-6 rounded-md border border-neutral-200 bg-white p-4 text-sm">
-                <h3 className="font-semibold text-neutral-900 mb-2">Refund Protection Details</h3>
+              <div className="mb-6 rounded-lg border border-emerald-200 bg-emerald-50 p-5">
+                {/* Success Message */}
+                <div className="flex items-start gap-3 mb-4">
+                  <CheckCircle className="h-5 w-5 text-emerald-600 mt-0.5" />
+                  <div>
+                    <h3 className="font-semibold text-emerald-900">Refund Protection Added</h3>
+                    <p className="text-sm text-emerald-800">
+                      Your ticket purchase is protected. If you cannot attend due to a covered
+                      reason, you may request a refund through the links below.
+                    </p>
+                  </div>
+                </div>
 
-                <div className="space-y-1 text-neutral-700">
-                  {refundPolicy.refund_request_url && (
-                    <a
-                      href={refundPolicy.refund_request_url}
-                      target="_blank"
-                      className="block text-blue-600 underline"
-                    >
-                      Submit a Refund Request
-                    </a>
-                  )}
+                <Separator className="my-4 bg-emerald-200" />
 
-                  {refundPolicy.certificate_url && (
-                    <a
-                      href={refundPolicy.certificate_url}
-                      target="_blank"
-                      className="block text-blue-600 underline"
-                    >
-                      View Protection Certificate
-                    </a>
-                  )}
+                {/* Protection Actions */}
+                <div>
+                  <h4 className="text-sm font-semibold text-neutral-900 mb-3">
+                    Refund Protection Details
+                  </h4>
 
-                  {refundPolicy.policy_pdf && (
-                    <a
-                      href={refundPolicy.policy_pdf}
-                      target="_blank"
-                      className="block text-blue-600 underline"
-                    >
-                      Download Policy PDF
-                    </a>
-                  )}
+                  <div className="grid gap-2 text-sm">
+                    {refundPolicy.refund_request_url && (
+                      <a
+                        href={refundPolicy.refund_request_url}
+                        target="_blank"
+                        className="flex items-center justify-between rounded-md border border-neutral-200 bg-white px-3 py-2 hover:bg-neutral-50"
+                      >
+                        Submit a Refund Request
+                      </a>
+                    )}
 
-                  {refundPolicy.faq_url && (
-                    <a
-                      href={refundPolicy.faq_url}
-                      target="_blank"
-                      className="block text-blue-600 underline"
-                    >
-                      Protection FAQ
-                    </a>
-                  )}
+                    {refundPolicy.certificate_url && (
+                      <a
+                        href={refundPolicy.certificate_url}
+                        target="_blank"
+                        className="flex items-center justify-between rounded-md border border-neutral-200 bg-white px-3 py-2 hover:bg-neutral-50"
+                      >
+                        View Protection Certificate
+                      </a>
+                    )}
+
+                    {refundPolicy.policy_pdf && (
+                      <a
+                        href={refundPolicy.policy_pdf}
+                        target="_blank"
+                        className="flex items-center justify-between rounded-md border border-neutral-200 bg-white px-3 py-2 hover:bg-neutral-50"
+                      >
+                        Download Policy PDF
+                      </a>
+                    )}
+
+                    {refundPolicy.faq_url && (
+                      <a
+                        href={refundPolicy.faq_url}
+                        target="_blank"
+                        className="flex items-center justify-between rounded-md border border-neutral-200 bg-white px-3 py-2 hover:bg-neutral-50"
+                      >
+                        Protection FAQ
+                      </a>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
-
             <div className="space-y-4">
               <div className="flex items-start gap-4">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-neutral-100">

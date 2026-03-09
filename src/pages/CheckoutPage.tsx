@@ -20,13 +20,12 @@ export function CheckoutPage() {
     getDiscount,
     refundProtectionPrice,
     refundProtectionToken,
-    isProtectionSelected,
   } = useCartStore();
   const [isProcessing, setIsProcessing] = useState(false);
   //for storing teak order failure:
   let protectionWarning: string | null = null;
   let protectionAdded: boolean | null = null;
-  const optedIn = isProtectionSelected === true;
+  const optedIn = window.tg?.isProtected() === true;
 
   // Form state
   const [formData, setFormData] = useState({
@@ -180,8 +179,12 @@ export function CheckoutPage() {
 
           if (!teakResult.success) {
             console.error("Teak Protection Error");
-            protectionWarning =
-              "Your tickets were successfully purchased, but refund protection could not be added. You will not be charged for protection. Please call us at 1800-321-3232";
+            if (optedIn) {
+              protectionWarning =
+                "Your tickets were successfully purchased, but refund protection could not be added. You will not be charged for protection. Please call us at 1800-321-3232";
+            } else {
+              protectionWarning = null;
+            }
           }
           //teak order good and protection order was created
           if (teakResult.success && teakResult.protectionCreated) {
@@ -200,7 +203,8 @@ export function CheckoutPage() {
 
       //=========STEP 4 - Success: Clear cart and navigate to confirmation=========//
       clearCart();
-
+      console.log("protection added: " + protectionAdded);
+      console.log("protection warning: " + protectionWarning);
       navigate("/order-confirmation", {
         state: {
           orderNumber: orderResult.orderId,
