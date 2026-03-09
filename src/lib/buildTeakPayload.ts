@@ -1,4 +1,5 @@
 import { calculateItemCostWithFeesandDiscounts } from "./pricing";
+import { formatDate, formatTimeTo24Hour } from "./utils";
 
 // ============================================
 // Teak Payload Types
@@ -92,20 +93,6 @@ export const buildTeakPayload = (
     throw new Error("Cannot build Teak payload: cart is empty");
   }
 
-  const formatDate = (date: string) => new Date(date).toISOString().split("T")[0];
-
-  const formatTimeTo24Hour = (time12h: string) => {
-    const [time, modifier] = time12h.split(" ");
-    let [hours, minutes] = time.split(":");
-
-    if (hours === "12") hours = "00";
-    if (modifier === "PM") {
-      hours = (parseInt(hours, 10) + 12).toString();
-    }
-
-    return `${hours.padStart(2, "0")}:${minutes}`;
-  };
-
   const firstItem = items[0];
 
   const payload: TeakPayload = {
@@ -116,10 +103,10 @@ export const buildTeakPayload = (
     // Root event (safe for single-event carts)
     event: {
       name: firstItem.event.name,
-      start_date: formatDate(firstItem.event.date),
-      start_time: formatTimeTo24Hour(firstItem.event.time),
-      end_date: formatDate(firstItem.event.date),
-      end_time: formatTimeTo24Hour(firstItem.event.time),
+      start_date: formatDate(firstItem.event.date, firstItem.event.time),
+      start_time: formatTimeTo24Hour(firstItem.event.date, firstItem.event.time),
+      end_date: formatDate(firstItem.event.date, firstItem.event.time),
+      end_time: formatTimeTo24Hour(firstItem.event.date, firstItem.event.time),
       location: firstItem.event.venue,
     },
 
@@ -150,10 +137,10 @@ export const buildTeakPayload = (
           cost: calculateItemCostWithFeesandDiscounts(item.ticketType.price, subtotal, discount),
           event: {
             name: item.event.name,
-            start_date: formatDate(item.event.date),
-            start_time: formatTimeTo24Hour(item.event.time),
-            end_date: formatDate(item.event.date),
-            end_time: formatTimeTo24Hour(item.event.time),
+            start_date: formatDate(item.event.date, item.event.time),
+            start_time: formatTimeTo24Hour(item.event.date, item.event.time),
+            end_date: formatDate(item.event.date, item.event.time),
+            end_time: formatTimeTo24Hour(item.event.date, item.event.time),
             location: item.event.venue,
           },
         });

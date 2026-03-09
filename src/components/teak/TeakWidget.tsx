@@ -15,7 +15,7 @@ declare global {
 export default function TeakWidget({ totalAmount }: TeakWidgetProps) {
   const configuredRef = useRef(false);
 
-  console.log("teakScriptLoaded:", window.__teakScriptLoaded);
+  //console.log("teakScriptLoaded:", window.__teakScriptLoaded);
 
   useEffect(() => {
     // ============================================
