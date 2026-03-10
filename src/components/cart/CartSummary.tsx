@@ -39,7 +39,6 @@ export function CartSummary({
 
   //This is state for loading for the time of the widget
   const [showProtectionLoader, setShowProtectionLoader] = useState(true);
-  console.log(window.tg?.get("token"));
 
   //clear the loader after 4 seconds
   useEffect(() => {

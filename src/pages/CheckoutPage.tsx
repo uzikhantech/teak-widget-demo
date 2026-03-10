@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CartSummary } from "@/components/cart/CartSummary";
 import { useCartStore } from "@/store/cartStore";
+import { useProtectionInteractionStore } from "@/store/protectionInteractionStore";
 import { buildTeakPayload } from "@/lib/buildTeakPayload";
 import { validateTeakQuoteToken } from "@/lib/utils";
 
@@ -22,7 +23,13 @@ export function CheckoutPage() {
     refundProtectionPrice,
     refundProtectionToken,
   } = useCartStore();
+
+  const hasProtectionInteracted = useProtectionInteractionStore((s) => s.hasProtectionInteracted);
+  console.log("protectioSelected: " + hasProtectionInteracted);
+
   const [isProcessing, setIsProcessing] = useState(false);
+  //has the wisge been interacted with?
+  const [protectionError, setProtectionError] = useState(false);
   //for storing teak order failure:
   let protectionWarning: string | null = null;
   let protectionAdded: boolean | null = null;
@@ -60,6 +67,19 @@ export function CheckoutPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
+
+    //focus the teak widget and block purchase if the user has no interacted wiht the widget
+    if (!hasProtectionInteracted) {
+      setProtectionError(true);
+
+      document.getElementById("teak-widget")?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+
+      setIsProcessing(false);
+      return;
+    }
 
     try {
       // Calculate totals with discount
@@ -410,7 +430,12 @@ export function CheckoutPage() {
                 <CartSummary showCheckoutButton={false} />
 
                 <Separator />
-
+                {/*block purchase completeion if use hasnnt interacted with widget */}
+                {protectionError && (
+                  <p className="text-sm text-red-600 text-center">
+                    Please choose whether to add Refund Protection before completing your purchase.
+                  </p>
+                )}
                 <Button type="submit" size="lg" className="w-full" disabled={isProcessing}>
                   {isProcessing ? (
                     <>

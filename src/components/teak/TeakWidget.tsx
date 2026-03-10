@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useCartStore } from "@/store/cartStore";
+import { useProtectionInteractionStore } from "@/store/protectionInteractionStore";
 
 //This component expects a prop called totalAmount: number
 interface TeakWidgetProps {
@@ -16,6 +17,7 @@ declare global {
 
 export default function TeakWidget({ totalAmount }: TeakWidgetProps) {
   const configuredRef = useRef(false);
+  //const setProtectionInteracted = useProtectionInteractionStore((s) => s.setProtectionInteracted);
 
   useEffect(() => {
     // ============================================
@@ -94,6 +96,7 @@ export default function TeakWidget({ totalAmount }: TeakWidgetProps) {
           // Detect new cart session
           if (previousCartId && previousCartId !== currentCartId) {
             console.log("New cart session detected — clearing widget");
+            useProtectionInteractionStore.getState().resetProtectionInteraction();
 
             window.tg?.("update", {
               // Ensure cost is never 0 to avoid widget calculation errors
@@ -123,6 +126,9 @@ export default function TeakWidget({ totalAmount }: TeakWidgetProps) {
         optInCb: function () {
           console.log("Opt in for protection");
 
+          //the widget hsa been interacted
+          useProtectionInteractionStore.getState().setProtectionInteracted();
+
           const quote = window.tg?.get("quote");
           const isProtected = window.tg?.isProtected();
           const quoteToken = window.tg?.get("token");
@@ -136,6 +142,8 @@ export default function TeakWidget({ totalAmount }: TeakWidgetProps) {
 
         optOutCb: function () {
           console.log("Opt out for protection");
+          //the widget hsa been interacted
+          useProtectionInteractionStore.getState().setProtectionInteracted();
 
           const isProtected = window.tg?.isProtected();
           const quoteToken = window.tg?.get("token");
