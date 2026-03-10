@@ -40,3 +40,19 @@ export const formatTimeTo24Hour = (date: string, time12h: string): string => {
 
   return localDateTime.toISOString().split("T")[1].slice(0, 5);
 };
+
+/**
+ * The quote in the quote token and the amount in the order should match
+ */
+export function validateTeakQuoteToken(quote: number, token: string): boolean {
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    const jwtQuote = Number(payload?.ttl);
+    console.log("JWTQuote:" + jwtQuote);
+
+    return Number(quote) === jwtQuote;
+  } catch (error) {
+    console.error("Failed to validate Teak quote token", error);
+    return false;
+  }
+}

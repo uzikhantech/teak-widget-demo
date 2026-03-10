@@ -1,21 +1,21 @@
 import { useEffect, useRef } from "react";
 import { useCartStore } from "@/store/cartStore";
 
+//This component expects a prop called totalAmount: number
 interface TeakWidgetProps {
   totalAmount: number;
 }
 
+// Add Teak widget globals to the Window type
 declare global {
   interface Window {
-    tg?: any;
-    __teakScriptLoaded?: boolean;
+    tg?: any; // Teak widget global function
+    __teakScriptLoaded?: boolean; //prevent duplicate script injection
   }
 }
 
 export default function TeakWidget({ totalAmount }: TeakWidgetProps) {
   const configuredRef = useRef(false);
-
-  //console.log("teakScriptLoaded:", window.__teakScriptLoaded);
 
   useEffect(() => {
     // ============================================

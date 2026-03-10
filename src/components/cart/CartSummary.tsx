@@ -4,6 +4,7 @@ import { Separator } from "@/components/ui/separator";
 import { useCartStore } from "@/store/cartStore";
 import { CouponInput } from "./CouponInput";
 import TeakWidget from "../teak/TeakWidget";
+import { useState, useEffect } from "react";
 
 interface CartSummaryProps {
   showCheckoutButton?: boolean;
@@ -21,7 +22,6 @@ export function CartSummary({
     getDiscount,
     refundProtectionPrice,
     isProtectionSelected,
-    teakReady,
   } = useCartStore();
   const subtotal = getTotal();
   const discount = getDiscount();
@@ -33,6 +33,21 @@ export function CartSummary({
   const protectionPrice = isProtectionSelected ? refundProtectionPrice : 0; //TEAK Protection price when OPT IN
   const total =
     discountedSubtotal === 0 ? 0 : discountedSubtotal + serviceFee + tax + protectionPrice;
+
+  // if we can extract a qoute, then the widget is ready
+  const isTeakReady = typeof window !== "undefined" && window.tg?.get("quote");
+
+  //This is state for loading for the time of the widget
+  const [showProtectionLoader, setShowProtectionLoader] = useState(true);
+  console.log(window.tg?.get("token"));
+
+  //clear the loader after 4 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowProtectionLoader(false);
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, []);
 
   if (items.length === 0) {
     return null;
@@ -67,7 +82,16 @@ export function CartSummary({
       </div>
 
       {/* Teak Refund Protection */}
-      <div className={teakReady ? "block" : "hidden"}>
+
+      {/* Loading indicator while Teak initializes */}
+      {!isTeakReady && discountedSubtotal > 0 && showProtectionLoader && (
+        <div className="flex items-center justify-center py-4 text-xs text-neutral-500">
+          Checking refund protection availability...
+        </div>
+      )}
+
+      {/* Hide this div is the widget fails to load: onError */}
+      <div className={isTeakReady ? "block" : "hidden"}>
         <Separator className="my-4" />
         {discountedSubtotal > 0 && (
           <>

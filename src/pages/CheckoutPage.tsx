@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CartSummary } from "@/components/cart/CartSummary";
 import { useCartStore } from "@/store/cartStore";
 import { buildTeakPayload } from "@/lib/buildTeakPayload";
+import { validateTeakQuoteToken } from "@/lib/utils";
 
 export function CheckoutPage() {
   const navigate = useNavigate();
@@ -155,40 +156,61 @@ export function CheckoutPage() {
       let teakResult = null;
       if (refundProtectionToken && discountedSubtotal > 0) {
         try {
-          const teakPayload = buildTeakPayload(
-            orderResult.orderId,
-            refundProtectionToken,
-            items,
-            formData,
-            getTotal(),
-            getDiscount()
-          );
+          const protectionQuote = window.tg?.get("quote");
+          const protectionToken = window.tg?.get("token");
 
-          console.log("===== SENDING TO TEAK =====");
-          console.log(JSON.stringify(teakPayload, null, 2));
+          //does the quote match the quote in the token?
+          const isValidQuote =
+            protectionQuote && protectionQuote
+              ? validateTeakQuoteToken(Number(protectionQuote), protectionToken)
+              : false;
 
-          const teakResponse = await fetch("http://localhost:3001/api/teak/order", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(teakPayload),
-          });
-
-          teakResult = await teakResponse.json();
-
-          if (!teakResult.success) {
-            console.error("Teak Protection Error");
+          //if not valid don't proceed with the refund prtotection order
+          if (!isValidQuote) {
+            console.error("Teak quote token mismatch");
+            //make sure we set the warning message for the confirmation page if opted in
             if (optedIn) {
               protectionWarning =
-                "Your tickets were successfully purchased, but refund protection could not be added. You will not be charged for protection. Please call us at 1800-321-3232";
+                "Your tickets were successfully purchased, but refund protection could not be verified and was not added. You will not be charged for protection.";
             } else {
               protectionWarning = null;
             }
-          }
-          //teak order good and protection order was created
-          if (teakResult.success && teakResult.protectionCreated) {
-            protectionAdded = true;
+          } else {
+            const teakPayload = buildTeakPayload(
+              orderResult.orderId,
+              refundProtectionToken,
+              items,
+              formData,
+              getTotal(),
+              getDiscount()
+            );
+
+            console.log("===== SENDING TO TEAK =====");
+            console.log(JSON.stringify(teakPayload, null, 2));
+
+            const teakResponse = await fetch("http://localhost:3001/api/teak/order", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(teakPayload),
+            });
+
+            teakResult = await teakResponse.json();
+
+            if (!teakResult.success) {
+              console.error("Teak Protection Error");
+              if (optedIn) {
+                protectionWarning =
+                  "Your tickets were successfully purchased, but refund protection could not be added. You will not be charged for protection. Please call us at 1800-321-3232";
+              } else {
+                protectionWarning = null;
+              }
+            }
+            //teak order good and protection order was created
+            if (teakResult.success && teakResult.protectionCreated) {
+              protectionAdded = true;
+            }
           }
         } catch (teakError) {
           console.error("Teak Protection Error:" + teakError);
