@@ -17,7 +17,6 @@ declare global {
 
 export default function TeakWidget({ totalAmount }: TeakWidgetProps) {
   const configuredRef = useRef(false);
-  //const setProtectionInteracted = useProtectionInteractionStore((s) => s.setProtectionInteracted);
 
   useEffect(() => {
     // ============================================
@@ -96,6 +95,7 @@ export default function TeakWidget({ totalAmount }: TeakWidgetProps) {
           // Detect new cart session
           if (previousCartId && previousCartId !== currentCartId) {
             console.log("New cart session detected — clearing widget");
+            //new cart so we havent interacted with the teak widget
             useProtectionInteractionStore.getState().resetProtectionInteraction();
 
             window.tg?.("update", {

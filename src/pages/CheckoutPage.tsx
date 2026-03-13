@@ -25,7 +25,7 @@ export function CheckoutPage() {
   } = useCartStore();
 
   const hasProtectionInteracted = useProtectionInteractionStore((s) => s.hasProtectionInteracted);
-  console.log("protectioSelected: " + hasProtectionInteracted);
+  //console.log("protectioSelected: " + hasProtectionInteracted);
 
   const [isProcessing, setIsProcessing] = useState(false);
   //has the wisge been interacted with?
